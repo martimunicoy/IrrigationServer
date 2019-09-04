@@ -40,7 +40,7 @@ def display_info(running_answer, current_position):
     print("Content-Type: text/plain\n\n")  # here text -- not html
 
     # Print a simple message to the display window.
-    print("Server Information:\n")
+    print("Irrigation Program Information:\n")
     print("  - Running: {}".format(running_answer))
     print("  - Current position: {}".format(current_position))
 
