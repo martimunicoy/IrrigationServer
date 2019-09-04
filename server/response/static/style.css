@@ -1,19 +1,133 @@
-
-.header {
-    background-color: #F1F1F1;
-    text-align: center;
-    padding: 20px;
+/* Body */
+body {
+    font-family: Calibri;
+    padding: 10px;
+    background: #F1F1F1;
+    max-width: 600px;
+    margin: 0 auto !important;
+    float: none !important;
 }
 
-/* Main column */
-.maincolumn {
+/* Applied to all boxes */
+* {
+    box-sizing: border-box;
+}
+
+/* Card effect for text */
+.card {
+    background-color: white;
+    margin-bottom: 15px;
+}
+
+/* Clear floats after the columns */
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.leftframe {
+    background-color: #DDD;
+    padding: 5px 20px;
+}
+
+.rightframe {
+    background-color: #DDD;
+    padding: 5px 20px;
+    padding-bottom: 30px;
+    width: 100%;
+}
+
+.leftframe h1 {
+    font-size: 18px;
+}
+
+.rightframe h1 {
+    font-size: 18px;
+}
+
+/* Header */
+.header {
+    background-color: #DDD;
+    text-align: center;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+/* Main columns */
+.column {
+    float: left;
     width: 50%;
     background-color: #F1F1F1;
     text-align: center;
-    padding: 20px;
+    padding-top: 20px;
+    padding-right: 10px;
+}
+
+@media screen and (max-width: 600px) {
+  .column {
+    background-color: #F1F1F1;
+    width: 100%;
+    padding-top: 20px;
+    padding-right: 10px;
+  }
 }
 
 /* Custom object styles */
-#iframe {
+#leftiframe {
     border: none;
+    height: 200px;
+    width: 100%;
+}
+
+#rightiframe {
+    border: none;
+    height: 175px;
+    width: 100%;
+}
+
+#button {
+    float: left;
+    padding: 10px;
+}
+
+.btn {
+  display: inline-block;
+  padding: 6px 12px;
+  margin-bottom: 0;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 1.428571429;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  background-image: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+       -o-user-select: none;
+          user-select: none;
+}
+
+.btn:focus {
+  outline: thin dotted;
+  outline: 5px auto -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
+
+.btn:hover,
+.btn:focus {
+  color: #333333;
+  text-decoration: none;
+}
+
+.btn:active,
+.btn.active {
+  background-image: none;
+  outline: 0;
+  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+          box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
 }
