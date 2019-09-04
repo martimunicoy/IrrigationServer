@@ -1,14 +1,18 @@
+import os
 from http.server import CGIHTTPRequestHandler
 
 from .requestHandler import MockFile
 
 
 class CGIHandler(CGIHTTPRequestHandler):
-    def __init__(self):
-        self.contentType = ""
-        self.__cgi_directories = ["/cgi"]
+    cgi_directories = ['/server/response/cgi/']
+
+    def __init__(self, path, *args, **kwargs):
+        self.path = path
+        super().__init__(*args, **kwargs)
         self.setStatus(200)
         self.contents = MockFile()
+        self.headers = []
 
     def getContents(self):
         return self.contents.read()
@@ -23,4 +27,21 @@ class CGIHandler(CGIHTTPRequestHandler):
         return self.contentType
 
     def getType(self):
-        return 'static'
+        return 'cgi'
+
+    def find(self, file_path):
+        print(file_path.split('/'))
+        try:
+            path = os.path.join(os.path.dirname(__file__),
+                                self.__cgi_directory,
+                                *file_path.split('/'))
+            cgi_file = open(path)
+            self.contents = cgi_file
+            self.setStatus(200)
+            return True
+
+        except (FileNotFoundError, IsADirectoryError):
+            self.setStatus(404)
+            return False
+
+

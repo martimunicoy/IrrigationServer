@@ -1,0 +1,19 @@
+
+.header {
+    background-color: #F1F1F1;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Main column */
+.maincolumn {
+    width: 50%;
+    background-color: #F1F1F1;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Custom object styles */
+#iframe {
+    border: none;
+}

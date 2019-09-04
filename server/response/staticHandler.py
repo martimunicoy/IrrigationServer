@@ -18,6 +18,7 @@ class StaticHandler(RequestHandler):
 
         path = os.path.join(os.path.dirname(__file__),
                             'static', *file_path.split('/'))
+        print(path)
 
         try:
             if (extension in (".jpg", ".jpeg", ".png")):

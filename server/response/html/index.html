@@ -1,13 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
- <meta charset="utf-8" />
- <meta http-equiv="X-UA-Compatible" content="IE=edge">
- <title>Irrigation Server</title>
- <meta name=”viewport” content="width=device-width, initial-scale=1">
- <link rel="stylesheet" href="/main.css">
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Irrigation Server</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
- <h1>Irrigation Server</h1>
+    <div class="header">
+        <h1>Irrigation Server</h1>
+    </div>
+    <div class="maincolumn">
+        </object>
+            <iframe id="iframe" src="/server/response/cgi/server_info.cgi"></iframe>
+            <script>
+                window.setInterval(function() {
+                    reloadIFrame()
+                }, 3000);
+
+                function reloadIFrame() {
+                    console.log('reloading..');
+                    document.getElementById('iframe').contentWindow.location.reload();
+                }
+            </script>
+    </div>
 </body>
 </html>
