@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+{% load static %}
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Irrigation Server</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="{% static 'scheduleManager/style.css' %}">
+</head>
+
+<body>
+    <div class="header">
+        <h1>Irrigation Server</h1>
+    </div>
+    <div class="row">
+        <div class="column">
+            <div class="leftframe">
+                <h1>IRRIGATION STATUS</h1>
+                <div class="card">
+                    {% if server_status %}
+                        <ul>
+                            <li> Running: {{ server_status.running }} </li>
+                            <li> Current slot: {{ server_status.current_slot }} </li>
+                        </ul>
+                    {% else %}
+                        <p>No server status available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="column">
+            <div class="rightframe">
+                <h1>SCHEDULED HOURS</h1>
+                <div class="card">
+                    <!-- Listing scheduled hours -->
+                    {% if irrigation_hours %}
+                        <ol>
+                        {% for irrigation_hour in irrigation_hours %}
+                            <li> {{ irrigation_hour }} </li>
+                        {% endfor %}
+                        </ol>
+                    {% else %}
+                        <p>No hours are scheduled.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

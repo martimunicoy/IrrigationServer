@@ -48,3 +48,5 @@ class IrrigationHour(models.Model):
         ordering = ['hour_id',]
         db_table = 'irrigation_hours'
 
+    def __str__(self):
+        return str(self.hour)
