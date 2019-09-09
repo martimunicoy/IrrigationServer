@@ -19,6 +19,9 @@ body {
     background-color: white;
     padding: 1px 5px;
     margin-bottom: 15px;
+    border-radius: 3px;
+    padding: 1px 1px 0px 0px;
+    border: 1px solid grey;
 }
 
 .card ol {
@@ -57,12 +60,16 @@ body {
 .leftframe {
     background-color: #DDD;
     padding: 5px 20px;
+    border-radius: 5px;
+    border: 1px solid black;
 }
 
 .rightframe {
     background-color: #DDD;
     padding: 5px 20px;
     width: 100%;
+    border-radius: 5px;
+    border: 1px solid black;
 }
 
 .leftframe h1 {
@@ -79,24 +86,83 @@ body {
     text-align: center;
     padding-top: 5px;
     padding-bottom: 5px;
+    border-radius: 5px;
+    border: 1px solid black;
+}
+
+/* Message row */
+.messagerow {
+    width: 100%;
+    border-radius: 5px;
+    background-color: rgba(0, 128, 0, 0.15);
+    padding: 10px;
+    margin-top: 20px;
+    text-align: center;
+    color: green;
+    border: 1px solid green;
+    border-radius: 3px;
+}
+
+.messagerow p{
+    margin: 0px;
 }
 
 /* Main columns */
-.column {
+.leftcolumn {
     float: left;
-    width: 50%;
+    width: 30%;
     background-color: #F1F1F1;
     text-align: center;
     padding-top: 20px;
     padding-right: 10px;
 }
 
+.rightcolumn {
+    float: left;
+    width: 70%;
+    background-color: #F1F1F1;
+    text-align: center;
+    padding-top: 20px;
+    padding-left: 10px;
+}
+
+/* Buttons */
+.buttonrow {
+    margin-top: -0.5em;
+    text-align: right;
+    padding-bottom: 15px;
+}
+
+.button {
+    font-weight: bold;
+    padding: 5px 10px;
+    background-color: #555555;
+    color: white;
+    border-radius: 10px;
+    margin: 5px;
+    border: 1px solid grey;
+    cursor:pointer;
+}
+
+.button:hover {
+    background-color: white;
+    color: #555555;
+    box-shadow: 0 2px #555555;
+}
+
+.button:active {
+    background-color: white;
+    box-shadow: 0 0 #555555;
+    transform: translateY(2px);
+}
+
 @media screen and (max-width: 800px) {
-  .column {
+  .rightcolumn, .leftcolumn{
     background-color: #F1F1F1;
     width: 100%;
     padding-top: 20px;
-    padding-right: 10px;
+    padding-left: 0px;
+    padding-right: 0px;
   }
 }
 

@@ -15,25 +15,40 @@
     <div class="header">
         <h1>Irrigation Server</h1>
     </div>
+    {% if messages %}
+    <div class="messagerow">
+        <p class="messages">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </p>
+    </div>
+    {% endif %}
     <div class="row">
-        <div class="column">
+        <div class="leftcolumn">
             <div class="leftframe">
-                <h1>IRRIGATION STATUS</h1>
-                <div class="card">
-                    {% if server_status %}
-                        <ul>
-                            <li> Running: {{ server_status.running }} </li>
-                            <li> Current slot: {{ server_status.current_slot }} </li>
-                        </ul>
-                    {% else %}
-                        <p>No server status available.</p>
-                    {% endif %}
-                </div>
+                <h1>Irrigation status</h1>
+                {% if status_updater_form %}
+                    <form action="/scheduleManager/submit_status" method="post">
+                        {% csrf_token %}
+                        <div class="card">
+                            <ul>
+                                <li> Running: {{ status_updater_form.running }}  </li>
+                                <li> Current slot: {{ status_updater_form.current_slot }} </li>
+                            </ul>
+                        </div>
+                        <div class="buttonrow">
+                            <input class="button" type="submit" value="Apply">
+                        </div>
+                    </form>
+                {% else %}
+                    <p>No server status available.</p>
+                {% endif %}
             </div>
         </div>
-        <div class="column">
+        <div class="rightcolumn">
             <div class="rightframe">
-                <h1>SCHEDULED HOURS</h1>
+                <h1>Scheduled hours</h1>
                 <div class="card">
                     <!-- Listing scheduled hours -->
                     {% if irrigation_hours %}
