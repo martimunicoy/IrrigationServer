@@ -15,7 +15,7 @@ setuptools.setup(
     version="0.1",
     author="Marti Municoy",
     author_email="martimunicoy@gmail.com",
-    description="Web server that controls an irrigation system through an electrovalve connected to a Raspberry Pi",
+    description="This is a Python3 module to set up an irrigation server to control a garden water system through a web server",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/martimunicoy/IrrigationServer",
