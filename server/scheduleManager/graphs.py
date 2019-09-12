@@ -5,9 +5,11 @@ import plotly.graph_objs as go
 
 
 MAX_DAY_RANGE = int(4)
+HOUR_DIVIDER = int(4)
 SCHEDULE_GRAPH_TICKS = [i for i in range(-24 * MAX_DAY_RANGE,
-                                         24 * MAX_DAY_RANGE, 4)]
-SCHEDULE_GRAPH_TEXTS = [i for i in range(0, 24, 4)] * MAX_DAY_RANGE * 2
+                                         24 * MAX_DAY_RANGE, HOUR_DIVIDER)]
+SCHEDULE_GRAPH_TEXTS = [i for i in range(0, 24, HOUR_DIVIDER)] * \
+    MAX_DAY_RANGE * 2
 WEEKDAYS_DICT = {0: 'Monday', 1: 'Tuesday', 2: 'Wednesday', 3: 'Thursday',
                  4: 'Friday', 5: 'Saturday', 6: 'Sunday'}
 
