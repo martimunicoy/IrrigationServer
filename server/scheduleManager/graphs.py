@@ -32,6 +32,9 @@ def create_schedule_graph(hour_range=24):
     hour = datetime.hour
     minute = datetime.minute
 
+    hour = 23
+    weekday = 3
+
     # Get axis range
     left = hour + minute / 60 - hour_range / 2
     right = hour + minute / 60 + hour_range / 2
@@ -62,7 +65,7 @@ def create_schedule_graph(hour_range=24):
     # Write figure shapes
     fig.update_layout(shapes=shapes, showlegend=False,
                       margin=dict(l=20, r=20, t=20, b=20),
-                      height=200,)
+                      height=200)
 
     # Get html div object
     plt_div = plot(fig, output_type='div', config={"displayModeBar": False},
@@ -101,13 +104,13 @@ def add_weekdays_to_graph(fig, weekday, left, right):
                 textfont=dict(
                     family="calibri",
                     size=18,
-                    color="coral"
+                    color="red"
                 )))
 
             shapes.append(go.layout.Shape(type="line",
                                           x0=i, y0=0,
                                           x1=i, y1=1,
-                                          line=dict(color="coral",
+                                          line=dict(color="red",
                                                     width=2.5,
                                                     dash="dash")))
 
@@ -146,20 +149,24 @@ def add_scheduled_hours_to_graph(current_weekday, left, right):
     irrigation_hours = IrrigationHour.objects.all()
 
     # Get displayed weekdays
+    displayed_weekdays = set()
+    weekday_indexes = {}
     for i in range(left - HOURS_THRESHOLD, right + HOURS_THRESHOLD):
-        weekday_to_print = get_weekday_to_print(current_weekday, int(i / 24))
+        displayed_weekday = get_weekday_to_print(current_weekday, int(i / 24))
+        displayed_weekdays.add(displayed_weekday)
+        weekday_indexes[displayed_weekday] = int(i / 24)
 
-        for irrigation_hour in irrigation_hours:
-            for weekday in irrigation_hour.week_days.all():
-                if (weekday.name == weekday_to_print):
-                    starting_hour = irrigation_hour.hour.hour
-                    shapes.append(go.layout.Shape(type="rect",
-                                                  x0=starting_hour, y0=0,
-                                                  x1=starting_hour + TOTAL_DURATION,
-                                                  y1=0.8,
-                                                  line=dict(color="RoyalBlue",
-                                                            width=2),
-                                                  fillcolor="LightSkyBlue"))
-                    break
+    for irrigation_hour in irrigation_hours:
+        for weekday in irrigation_hour.week_days.all():
+            if (weekday.name in displayed_weekdays):
+                starting_hour = irrigation_hour.hour.hour + \
+                    weekday_indexes[weekday.name] * 24
+                shapes.append(go.layout.Shape(type="rect",
+                                              x0=starting_hour, y0=0,
+                                              x1=starting_hour + TOTAL_DURATION,
+                                              y1=0.8,
+                                              line=dict(color="coral",
+                                                        width=2),
+                                              fillcolor="Gold"))
 
     return shapes
