@@ -37,18 +37,23 @@ def create_schedule_graph(hour_range=24):
     fig.update_xaxes(range=[left, right],
                      tickvals=SCHEDULE_GRAPH_TICKS, fixedrange=True,
                      ticks="outside", tickwidth=2, ticklen=5,
-                     ticktext=SCHEDULE_GRAPH_TEXTS)
+                     ticktext=SCHEDULE_GRAPH_TEXTS, zeroline=False)
     fig.update_yaxes(showticklabels=False, showgrid=False, range=[0, 1],
-                     fixedrange=True)
+                     fixedrange=True, zeroline=False)
 
-    shapes = add_weekdays_to_graph(fig, weekday, int(left), int(right))
+    # Initialize figure shapes
+    shapes = []
 
     # Add current hour indicator as a vertical line
-    shapes.append(go.layout.Shape(type="line", x0=hour + minute / 60, y0=0,
-                                  x1=hour + minute / 60, y1=1, opacity=0.7,
-                                  line=dict(color="LightSeaGreen",
-                                            width=2.5, dash="dot")))
+    shapes += add_hour_indicator(hour, minute)
 
+    # Add weekday labels to graph
+    shapes += add_weekdays_to_graph(fig, weekday, int(left), int(right))
+
+    # Add weekday labels to graph
+    #shapes += add_scheduled_hours_to_graph()
+
+    # Write figure shapes
     fig.update_layout(shapes=shapes, showlegend=False)
 
     # Add scheduled irrigation ranges as rectangles
@@ -60,6 +65,16 @@ def create_schedule_graph(hour_range=24):
                    include_plotlyjs=False, show_link=False, link_text="")
 
     return plt_div
+
+
+def add_hour_indicator(hour, minute):
+    shapes = []
+
+    shapes.append(go.layout.Shape(type="line", x0=hour + minute / 60, y0=0,
+                  x1=hour + minute / 60, y1=1,
+                  line=dict(color="LightSeaGreen", width=2, dash="dot")))
+
+    return shapes
 
 
 def add_weekdays_to_graph(fig, weekday, left, right):
@@ -82,14 +97,15 @@ def add_weekdays_to_graph(fig, weekday, left, right):
                 textfont=dict(
                     family="calibri",
                     size=18,
-                    color="crimson"
+                    color="coral"
                 )))
 
             shapes.append(go.layout.Shape(type="line",
                                           x0=i, y0=0,
                                           x1=i, y1=1,
-                                          line=dict(color="crimson",
-                                                    width=2.5)))
+                                          line=dict(color="coral",
+                                                    width=2.5,
+                                                    dash="dash")))
 
     return shapes
 
@@ -111,3 +127,9 @@ def get_weekday_to_print(weekday, iterations, reverse=False):
                 weekday_index = 6
 
     return WEEKDAYS_DICT[weekday_index]
+
+
+def add_scheduled_hours_to_graph():
+    shapes = []
+
+    return shapes
