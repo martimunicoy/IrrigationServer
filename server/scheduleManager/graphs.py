@@ -3,6 +3,8 @@ from django.utils import timezone
 from plotly.offline import plot
 import plotly.graph_objs as go
 
+from .models import IrrigationHour
+
 
 MAX_DAY_RANGE = int(4)
 HOUR_DIVIDER = int(4)
@@ -51,7 +53,7 @@ def create_schedule_graph(hour_range=24):
     shapes += add_weekdays_to_graph(fig, weekday, int(left), int(right))
 
     # Add weekday labels to graph
-    #shapes += add_scheduled_hours_to_graph()
+    shapes += add_scheduled_hours_to_graph(weekday, left, right)
 
     # Write figure shapes
     fig.update_layout(shapes=shapes, showlegend=False)
@@ -60,8 +62,7 @@ def create_schedule_graph(hour_range=24):
     # @TODO
 
     # Get html div object
-    plt_div = plot(fig, output_type='div', config={"displayModeBar": False,
-                                                   "showLegend": False},
+    plt_div = plot(fig, output_type='div', config={"displayModeBar": False},
                    include_plotlyjs=False, show_link=False, link_text="")
 
     return plt_div
@@ -110,16 +111,17 @@ def add_weekdays_to_graph(fig, weekday, left, right):
     return shapes
 
 
-def get_weekday_to_print(weekday, iterations, reverse=False):
+def get_weekday_to_print(weekday, iterations):
     weekday_index = weekday
 
-    if (not reverse):
+    if (iterations > 0):
         for i in range(0, iterations):
             if (weekday_index < 6):
                 weekday_index += 1
             else:
                 weekday_index = 0
     else:
+        iterations = -iterations
         for i in range(0, iterations):
             if (weekday_index > 0):
                 weekday_index -= 1
@@ -129,7 +131,12 @@ def get_weekday_to_print(weekday, iterations, reverse=False):
     return WEEKDAYS_DICT[weekday_index]
 
 
-def add_scheduled_hours_to_graph():
+def add_scheduled_hours_to_graph(weekday, left, right):
     shapes = []
+
+    irrigation_hours = IrrigationHour.objects.all()
+
+    for i in irrigation_hours:
+        print(i)
 
     return shapes
