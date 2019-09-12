@@ -33,7 +33,8 @@ def submit_status(request):
         status_updater_form = StatusUpdaterForm(request.POST)
         if (status_updater_form.is_valid()):
             if (len(ProgramStatus.objects.all()) != 1):
-                raise TypeError('Invalid dataset, ProgramStatus table not found')
+                raise TypeError('Invalid dataset, ' +
+                                'ProgramStatus table not found')
 
             server_status = ProgramStatus.objects.all()[0]
 
