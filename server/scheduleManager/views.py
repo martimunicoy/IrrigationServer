@@ -19,7 +19,7 @@ def index(request):
         initial={'current_slot': server_status.current_slot,
                  'running': server_status.running})
 
-    plt_div = graphs.create_schedule_graph(hour_range=48)
+    plt_div = graphs.create_schedule_graph(hour_range=24)
 
     context = {'irrigation_hours': irrigation_hours,
                'status_updater_form': status_updater_form,

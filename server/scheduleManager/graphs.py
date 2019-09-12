@@ -7,13 +7,14 @@ from .models import IrrigationHour
 
 
 MAX_DAY_RANGE = int(4)
-HOUR_DIVIDER = int(4)
+HOUR_DIVIDER = int(2)
 SCHEDULE_GRAPH_TICKS = [i for i in range(-24 * MAX_DAY_RANGE,
                                          24 * MAX_DAY_RANGE, HOUR_DIVIDER)]
 SCHEDULE_GRAPH_TEXTS = [i for i in range(0, 24, HOUR_DIVIDER)] * \
     MAX_DAY_RANGE * 2
 WEEKDAYS_DICT = {0: 'Monday', 1: 'Tuesday', 2: 'Wednesday', 3: 'Thursday',
                  4: 'Friday', 5: 'Saturday', 6: 'Sunday'}
+HOURS_THRESHOLD = 24
 
 
 def create_schedule_graph(hour_range=24):
@@ -52,14 +53,16 @@ def create_schedule_graph(hour_range=24):
     # Add weekday labels to graph
     shapes += add_weekdays_to_graph(fig, weekday, int(left), int(right))
 
-    # Add weekday labels to graph
-    shapes += add_scheduled_hours_to_graph(weekday, left, right)
+    # Add scheduled irrigation ranges as rectangles
+    shapes += add_scheduled_hours_to_graph(weekday, int(left), int(right))
+
+    # TODO
+    # Add raining precipitations as a line over the graph
 
     # Write figure shapes
-    fig.update_layout(shapes=shapes, showlegend=False)
-
-    # Add scheduled irrigation ranges as rectangles
-    # @TODO
+    fig.update_layout(shapes=shapes, showlegend=False,
+                      margin=dict(l=20, r=20, t=20, b=20),
+                      height=200,)
 
     # Get html div object
     plt_div = plot(fig, output_type='div', config={"displayModeBar": False},
@@ -81,7 +84,7 @@ def add_hour_indicator(hour, minute):
 def add_weekdays_to_graph(fig, weekday, left, right):
     shapes = []
 
-    for i in range(left, right):
+    for i in range(left - HOURS_THRESHOLD, right + HOURS_THRESHOLD):
         if (i % 24 == 0):
             weekday_to_print = get_weekday_to_print(weekday, int(i / 24))
 
@@ -131,12 +134,32 @@ def get_weekday_to_print(weekday, iterations):
     return WEEKDAYS_DICT[weekday_index]
 
 
-def add_scheduled_hours_to_graph(weekday, left, right):
+# TODO
+# Change TOTAL_DURATION constant for the actual calculation of the duration of
+# the irrigation program
+TOTAL_DURATION = 1
+
+
+def add_scheduled_hours_to_graph(current_weekday, left, right):
     shapes = []
 
     irrigation_hours = IrrigationHour.objects.all()
 
-    for i in irrigation_hours:
-        print(i)
+    # Get displayed weekdays
+    for i in range(left - HOURS_THRESHOLD, right + HOURS_THRESHOLD):
+        weekday_to_print = get_weekday_to_print(current_weekday, int(i / 24))
+
+        for irrigation_hour in irrigation_hours:
+            for weekday in irrigation_hour.week_days.all():
+                if (weekday.name == weekday_to_print):
+                    starting_hour = irrigation_hour.hour.hour
+                    shapes.append(go.layout.Shape(type="rect",
+                                                  x0=starting_hour, y0=0,
+                                                  x1=starting_hour + TOTAL_DURATION,
+                                                  y1=0.8,
+                                                  line=dict(color="RoyalBlue",
+                                                            width=2),
+                                                  fillcolor="LightSkyBlue"))
+                    break
 
     return shapes
