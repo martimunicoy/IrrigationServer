@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect
 from django.contrib import messages
 
@@ -38,14 +38,32 @@ def submit_status(request):
 
             server_status = ProgramStatus.objects.all()[0]
 
-            if (server_status.running != status_updater_form.cleaned_data['running']):
-                messages.success(request, 'Irrigation program has {} successfully'.format(('started', 'ended')[int(status_updater_form.cleaned_data['running'] is False)]))
-                server_status.running = status_updater_form.cleaned_data['running']
+            if (server_status.running !=
+                    status_updater_form.cleaned_data['running']):
+                messages.success(
+                    request, 'Irrigation program has {} ' +
+                    'successfully'.format(
+                        ('started', 'ended')
+                        [int(status_updater_form.cleaned_data['running']
+                         is False)]))
+                server_status.running = \
+                    status_updater_form.cleaned_data['running']
 
-            if (server_status.current_slot != status_updater_form.cleaned_data['current_slot']):
+            if (server_status.current_slot !=
+                    status_updater_form.cleaned_data['current_slot']):
                 messages.success(request, 'Slot has been changed successfully')
-                server_status.current_slot = status_updater_form.cleaned_data['current_slot']
+                server_status.current_slot = \
+                    status_updater_form.cleaned_data['current_slot']
 
             server_status.save()
+
+    return HttpResponseRedirect('/scheduleManager/')
+
+
+def irrigation_hour_delete(request, pk):
+    irrigation_hour = get_object_or_404(IrrigationHour, pk=pk)
+
+    if request.method == 'POST':
+        irrigation_hour.delete()
 
     return HttpResponseRedirect('/scheduleManager/')
