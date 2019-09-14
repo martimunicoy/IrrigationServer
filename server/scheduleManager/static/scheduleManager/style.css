@@ -28,7 +28,7 @@ body {
     padding: 0;
     counter-reset: item;
 }
- 
+
 .card ol > li {
     margin: 0;
     padding: 0 0 0.5em 2em;
@@ -36,7 +36,7 @@ body {
     list-style-type: none;
     counter-increment: item;
 }
- 
+
 .card ol > li:before {
     display: inline-block;
     width: 1em;
@@ -58,6 +58,7 @@ body {
 }
 
 .leftframe {
+    margin-top: 20px;
     background-color: #DDD;
     padding: 5px 20px;
     border-radius: 5px;
@@ -65,6 +66,7 @@ body {
 }
 
 .rightframe {
+    margin-top: 20px;
     background-color: #DDD;
     padding: 5px 20px;
     width: 100%;
@@ -113,7 +115,6 @@ body {
     width: 30%;
     background-color: #F1F1F1;
     text-align: center;
-    padding-top: 20px;
     padding-right: 10px;
 }
 
@@ -122,7 +123,6 @@ body {
     width: 70%;
     background-color: #F1F1F1;
     text-align: center;
-    padding-top: 20px;
     padding-left: 10px;
 }
 
@@ -160,7 +160,6 @@ body {
   .rightcolumn, .leftcolumn{
     background-color: #F1F1F1;
     width: 100%;
-    padding-top: 20px;
     padding-left: 0px;
     padding-right: 0px;
   }
