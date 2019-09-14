@@ -32,9 +32,6 @@ def create_schedule_graph(hour_range=24):
     hour = datetime.hour
     minute = datetime.minute
 
-    hour = 23
-    weekday = 3
-
     # Get axis range
     left = hour + minute / 60 - hour_range / 2
     right = hour + minute / 60 + hour_range / 2

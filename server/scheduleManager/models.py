@@ -8,7 +8,7 @@ class IrrigationSlot(models.Model):
 
     class Meta:
         app_label = 'scheduleManager'
-        ordering = ['slot_id',]
+        ordering = ['slot_id', ]
         db_table = 'irrigation_slots'
 
     def __str__(self):
@@ -31,7 +31,7 @@ class WeekDay(models.Model):
 
     class Meta:
         app_label = 'scheduleManager'
-        ordering = ['day_id',]
+        ordering = ['day_id', ]
         db_table = 'week_days'
 
     def __str__(self):
@@ -61,7 +61,7 @@ class IrrigationHour(models.Model):
 
     class Meta:
         app_label = 'scheduleManager'
-        ordering = ['hour_id',]
+        ordering = ['hour_id', ]
         db_table = 'irrigation_hours'
 
     def print_weekdays_interval(self):
@@ -113,3 +113,13 @@ class IrrigationHour(models.Model):
 
     def __str__(self):
         return '{}: {}'.format(self.print_weekdays_interval(), self.hour)
+
+
+class WeatherData(models.Model):
+    datetime = models.DateTimeField()
+    rain_intensity = models.FloatField()
+
+    class Meta:
+        app_label = 'scheduleManager'
+        ordering = ['datetime', ]
+        db_table = 'weather_data'
