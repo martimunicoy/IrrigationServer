@@ -11,7 +11,7 @@ with open("README.md", "r") as readme_file:
     long_description = readme_file.read()
 
 setuptools.setup(
-    name="irrigation_server",
+    name="irrigationserver",
     version="0.1",
     author="Marti Municoy",
     author_email="martimunicoy@gmail.com",
