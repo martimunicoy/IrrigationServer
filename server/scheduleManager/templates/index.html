@@ -71,7 +71,13 @@
                     {% if irrigation_hours %}
                         <ol>
                         {% for irrigation_hour in irrigation_hours %}
-                            <li> {{ irrigation_hour }} </li>
+                            <li>
+                                {{ irrigation_hour }}
+                                <form action="{% url 'scheduleManager:irrigation_hour_delete' irrigation_hour.hour_id %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="submit" value="Delete">
+                                </form>
+                            </li>
                         {% endfor %}
                         </ol>
                     {% else %}
