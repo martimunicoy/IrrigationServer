@@ -20,6 +20,14 @@ def arguments_parser():
     return args
 
 
+def check_screen():
+    try:
+        output = subprocess.run(['screen', '-v'], stdout=subprocess.PIPE)
+    except FileNotFoundError:
+        raise SystemError('Screen is not installed in this environment')
+    print(' - Detected screen: {}'.format(output.stdout.decode('utf-8')))
+
+
 def main(args):
     print('Starting all web-server services:')
     print(' - Starting weather service')
@@ -31,4 +39,5 @@ def main(args):
 
 if (__name__ == '__main__'):
     args = arguments_parser()
-    main(args)
+    check_screen()
+    #main(args)
