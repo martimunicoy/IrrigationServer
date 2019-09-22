@@ -28,7 +28,8 @@ def arguments_parser():
 
     for service_name in args.service_names:
         if (service_name not in (WEATHER_SERVICE_NAME,
-                                 WEBSERVER_SERVICE_NAME)):
+                                 WEBSERVER_SERVICE_NAME,
+                                 'all')):
             print('Warning! Unknown service was found: \'{}\''.format(service_name)) 
 
     return args
@@ -45,12 +46,12 @@ def system_checks():
 
 def main(args):
     print('Starting requested services:')
-    if (WEATHER_SERVICE_NAME in args.service_names):
+    if (WEATHER_SERVICE_NAME in args.service_names or 'all' in args.service_names):
         print(' - Starting weather service')
         subprocess.Popen(['screen', '-S', WEATHER_SESSION_NAME, '-d', '-m',
                           'python', 'scripts/weather.py'],
                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if (WEBSERVER_SERVICE_NAME in args.service_names):
+    if (WEBSERVER_SERVICE_NAME in args.service_names or 'all' in args.service_names):
         host_address = "{}:{}".format(args.ip_address[0], args.port[0])
         print(' - Starting html server at {}'.format(host_address))
         subprocess.Popen(['screen', '-S', WEBSERVER_SESSION_NAME, '-d', '-m',
