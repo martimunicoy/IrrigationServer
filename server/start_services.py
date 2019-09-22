@@ -48,14 +48,22 @@ def main(args):
     print('Starting requested services:')
     if (WEATHER_SERVICE_NAME in args.service_names or 'all' in args.service_names):
         print(' - Starting weather service')
-        subprocess.Popen(['screen', '-S', WEATHER_SESSION_NAME, '-d', '-m',
-                          'python', 'scripts/weather.py'],
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output = subprocess.run(['screen', '-ls'], stdout=subprocess.PIPE)
+        if (WEATHER_SESSION_NAME in output.stdout.decode('utf-8').strip()):
+            print('  - Weather service already running')
+        else:
+            subprocess.Popen(['screen', '-S', WEATHER_SESSION_NAME, '-d', '-m',
+                              'python', 'scripts/weather.py'],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if (WEBSERVER_SERVICE_NAME in args.service_names or 'all' in args.service_names):
         host_address = "{}:{}".format(args.ip_address[0], args.port[0])
         print(' - Starting html server at {}'.format(host_address))
-        subprocess.Popen(['screen', '-S', WEBSERVER_SESSION_NAME, '-d', '-m',
-                          'python', 'manage.py', 'runserver', host_address])
+        output = subprocess.run(['screen', '-ls'], stdout=subprocess.PIPE)
+        if (WEBSERVER_SESSION_NAME in output.stdout.decode('utf-8').strip()):
+            print('  - Html server already running')
+        else:
+            subprocess.Popen(['screen', '-S', WEBSERVER_SESSION_NAME, '-d', '-m',
+                              'python', 'manage.py', 'runserver', host_address])
 
     print('Done')
 
