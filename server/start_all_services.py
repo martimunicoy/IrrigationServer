@@ -20,7 +20,8 @@ def arguments_parser():
     return args
 
 
-def check_screen():
+def system_checks():
+    print('System checks:')
     try:
         output = subprocess.run(['screen', '-v'], stdout=subprocess.PIPE)
     except FileNotFoundError:
@@ -39,5 +40,5 @@ def main(args):
 
 if (__name__ == '__main__'):
     args = arguments_parser()
-    check_screen()
-    #main(args)
+    system_checks()
+    main(args)
