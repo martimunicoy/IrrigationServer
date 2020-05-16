@@ -64,6 +64,20 @@ class IrrigationHour(models.Model):
         ordering = ['hour_id', ]
         db_table = 'irrigation_hours'
 
+    def to_catalan(func):
+        def wrapper(*args):
+            english_weekdays = func(*args)
+            catalan_weekdays = english_weekdays.replace('Monday', 'Dilluns')
+            catalan_weekdays = catalan_weekdays.replace('Tuesday', 'Dimarts')
+            catalan_weekdays = catalan_weekdays.replace('Wednesday', 'Dimecres')
+            catalan_weekdays = catalan_weekdays.replace('Thursday', 'Dijous')
+            catalan_weekdays = catalan_weekdays.replace('Friday', 'Divendres')
+            catalan_weekdays = catalan_weekdays.replace('Saturday', 'Dissabte')
+            catalan_weekdays = catalan_weekdays.replace('Sunday', 'Diumenge')
+            return catalan_weekdays
+        return wrapper
+
+    @to_catalan
     def print_weekdays_interval(self):
         indexes_list = []
         for wd in self.week_days.all():

@@ -6,7 +6,7 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Irrigation Server</title>
+    <title>Servidor de rec</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="{% static 'scheduleManager/style.css' %}">
 
@@ -22,7 +22,7 @@
 
 <body>
     <div class="header">
-        <h1>Irrigation Server</h1>
+        <h1>Servidor de rec</h1>
     </div>
     {% if messages %}
     <div class="messagerow">
@@ -36,28 +36,47 @@
     <div class="row">
         <div class="leftcolumn">
             <div class="leftframe">
-                <h1>Irrigation status</h1>
+                <h1>Estat actual</h1>
                 {% if status_updater_form %}
                     <form action="/scheduleManager/submit_status" method="post">
                         {% csrf_token %}
                         <div class="card">
                             <ul>
-                                <li> Running: {{ status_updater_form.running }}  </li>
-                                <li> Current slot: {{ status_updater_form.current_slot }} </li>
+                                <li> Rec obert: {{ status_updater_form.running }}  </li>
+                                <li> Posició: {{ status_updater_form.current_slot }} </li>
                             </ul>
                         </div>
                         <div class="buttonrow">
-                            <input class="button" type="submit" value="Apply">
+                            <input class="button" type="submit" value="Aplicar">
                         </div>
                     </form>
                 {% else %}
-                    <p>No server status available.</p>
+                    <p>Estat actual del servidor no disponible.</p>
+                {% endif %}
+            </div>
+            <div class="leftframe">
+                <h1>Nou programa</h1>
+                {% if status_updater_form %}
+                    <form action="/scheduleManager/submit_status" method="post">
+                        {% csrf_token %}
+                        <div class="card">
+                            <ul>
+                                <li> Hora: </li>
+                                <li> Dia: </li>
+                            </ul>
+                        </div>
+                        <div class="buttonrow">
+                            <input class="button" type="submit" value="Afegir">
+                        </div>
+                    </form>
+                {% else %}
+                    <p>Estat del servidor no disponible.</p>
                 {% endif %}
             </div>
         </div>
         <div class="rightcolumn">
             <div class="rightframe">
-                <h1>Daily schedule</h1>
+                <h1>Visualitzador diari</h1>
                 <div class="card">
                     {% autoescape off %}
                     {{ plot_div }}
@@ -65,7 +84,7 @@
                 </div>
             </div>
             <div class="rightframe">
-                <h1>All scheduled hours</h1>
+                <h1>Llistat de programes</h1>
                 <div class="card">
                     <!-- Listing scheduled hours -->
                     {% if irrigation_hours %}
@@ -75,13 +94,13 @@
                                 {{ irrigation_hour }}
                                 <form action="{% url 'scheduleManager:irrigation_hour_delete' irrigation_hour.hour_id %}" method="post">
                                     {% csrf_token %}
-                                    <input type="submit" value="Delete">
+                                    <input type="submit" value="Eliminar">
                                 </form>
                             </li>
                         {% endfor %}
                         </ol>
                     {% else %}
-                        <p>No hours are scheduled.</p>
+                        <p>Encara no hi ha cap programa establert.</p>
                     {% endif %}
                 </div>
             </div>
