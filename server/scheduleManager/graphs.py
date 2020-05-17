@@ -14,7 +14,16 @@ SCHEDULE_GRAPH_TEXTS = [i for i in range(0, 24, HOUR_DIVIDER)] * \
     MAX_DAY_RANGE * 2
 WEEKDAYS_DICT = {0: 'Monday', 1: 'Tuesday', 2: 'Wednesday', 3: 'Thursday',
                  4: 'Friday', 5: 'Saturday', 6: 'Sunday'}
+CAT_WEEKDAYS = {'Monday': 'Dilluns', 'Tuesday': 'Dimarts',
+                'Wednesday': 'Dimecres', 'Thursday': 'Dijous',
+                'Friday': 'Divendres', 'Saturday': 'Dissabte',
+                'Sunday': 'Diumenge'}
+TODAY = 'Avui'
 HOURS_THRESHOLD = 24
+
+
+def catalanitzar(weekday):
+    return CAT_WEEKDAYS[weekday]
 
 
 def create_schedule_graph(hour_range=24):
@@ -86,10 +95,10 @@ def add_weekdays_to_graph(fig, weekday, left, right):
 
     for i in range(left - HOURS_THRESHOLD, right + HOURS_THRESHOLD):
         if (i % 24 == 0):
-            weekday_to_print = get_weekday_to_print(weekday, int(i / 24))
+            weekday_to_print = catalanitzar(get_weekday_to_print(weekday, int(i / 24)))
 
             if (int(i / 24) == 0):
-                weekday_to_print = 'Today'
+                weekday_to_print = TODAY
 
             fig.add_trace(go.Scatter(
                 x=[i + (right - left) / 20], y=[0.95],

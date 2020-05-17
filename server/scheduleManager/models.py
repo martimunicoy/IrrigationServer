@@ -77,6 +77,9 @@ class IrrigationHour(models.Model):
             return catalan_weekdays
         return wrapper
 
+    def get_week_days(self):
+        return self.week_days
+
     @to_catalan
     def print_weekdays_interval(self):
         indexes_list = []
