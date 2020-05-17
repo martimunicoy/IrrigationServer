@@ -20,7 +20,7 @@ os.chdir(proj_path)
 django.setup()
 
 # Load models from server
-from scheduleManager.models import ProgramStatus, IrrigationHour
+from scheduleManager.models import ProgramStatus, IrrigationHour, CycleSettings
 
 
 QUERY_FREQUENCY = int(1)  # 1 second
@@ -106,6 +106,47 @@ class Electrovalve(object):
             self.close()
 
 
+class Cycle(object):
+    def __init__(self, electrovalve, current_slot=1,
+                 slot_times=[60, 60, 60, 60, 60, 60],
+                 slot_actives=[False, False, False, False, False, False]):
+        self._electrovalve = electrovalve
+        self._current_slot = current_slot
+        self._slot_times = slot_times
+        self._slot_actives = slot_actives
+
+    @property
+    def electrovalve(self):
+        return self._electrovalve
+
+    @property
+    def current_slot(self):
+        return self._current_slot
+
+    @property
+    def slot_times(self):
+        return self._slot_times
+
+    @property
+    def slot_actives(self):
+        return self._slot_actives
+
+    def set_current_slot(self, current_slot):
+        self._current_slot = current_slot
+
+    def set_slot_times(self, slot_times):
+        self._slot_times = slot_times
+
+    def set_slot_actives(self, slot_actives):
+        self._slot_actives = slot_actives
+
+    def run(self):
+        for slot_time in self.slot_times:
+            self.electrovalve.open()
+            time.sleep(slot_time)
+            self.electrovalve.close()
+
+
 class ServerStatus(object):
     class Program(object):
         def __init__(self, time, weekday):
@@ -171,6 +212,12 @@ class ServerStatus(object):
                 date += timedelta(days=7)
             return (date - now).total_seconds()
 
+    SLOT_TIMES = ['slot1_time', 'slot2_time', 'slot3_time', 'slot4_time',
+                  'slot5_time', 'slot6_time']
+
+    SLOT_ACTIVES = ['slot1_active', 'slot2_active', 'slot3_active',
+                    'slot4_active', 'slot5_active', 'slot6_active']
+
     def _get_program_status(self):
         return ProgramStatus.objects.all().values()[0]
 
@@ -182,6 +229,9 @@ class ServerStatus(object):
             for weekday in weekdays:
                 programs.append(self.Program(hour, weekday))
         return programs
+
+    def _get_cycle_settings(self):
+        return CycleSettings.objects.all().values()[0]
 
     @property
     def is_running(self):
@@ -195,13 +245,28 @@ class ServerStatus(object):
     def programs(self):
         return self._get_programs()
 
-
-class Handler(object):
-    def __init__(self, electrovalve):
-        self._electrovalve = electrovalve
-        self._apply_state()
+    @property
+    def slot_times(self):
+        cycle_settings = self._get_cycle_settings()
+        return [cycle_settings[i] for i in self.SLOT_TIMES]
 
     @property
+    def slot_actives(self):
+        cycle_settings = self._get_cycle_settings()
+        return [cycle_settings[i] for i in self.SLOT_ACTIVES]
+
+
+class Handler(object):
+    def __init__(self, cycle):
+        self._cycle = cycle
+        self._electrovalve = cycle.electrovalve
+        self._apply_state()
+
+    @ property
+    def cycle(self):
+        return self._cycle
+
+    @ property
     def electrovalve(self):
         return self._electrovalve
 
@@ -210,18 +275,13 @@ class Handler(object):
 
 
 class StatusHandler(Handler):
-    def __init__(self, electrovalve, current_running_status, slot):
+    def __init__(self, cycle, current_running_status):
         self._current_running_status = current_running_status
-        self._slot = slot
-        super().__init__(electrovalve)
+        super().__init__(cycle)
 
-    @property
+    @ property
     def current_running_status(self):
         return self._current_running_status
-
-    @property
-    def slot(self):
-        return self._slot
 
     def _apply_state(self):
         if self.current_running_status:
@@ -229,39 +289,33 @@ class StatusHandler(Handler):
         else:
             self.electrovalve.close()
 
-    def _feed(self, running_status, slot):
+    def _feed(self, running_status):
         if running_status != self.current_running_status:
             self._current_running_status = running_status
             self._apply_state()
 
-        self._slot = slot
-
 
 class ScheduleHandler(Handler):
-    class Cycle(object):
-        def __init__(self, slot_times):
-            self._slot_times = slot_times
-
-    def __init__(self, electrovalve, current_programs):
+    def __init__(self, cycle, current_programs):
         self._programs_to_load = set(current_programs)
         self._loaded_programs = []
         self._next_program = None
         self._timer = None
-        super().__init__(electrovalve)
+        super().__init__(cycle)
 
-    @property
+    @ property
     def programs_to_load(self):
         return self._programs_to_load
 
-    @property
+    @ property
     def loaded_programs(self):
         return self._loaded_programs
 
-    @property
+    @ property
     def next_program(self):
         return self._next_program
 
-    @property
+    @ property
     def timer(self):
         return self._timer
 
@@ -325,22 +379,69 @@ class ScheduleHandler(Handler):
         print(self.timer)
 
 
+class CycleHandler(Handler):
+    def __init__(self, cycle, current_slot, slot_times, slot_actives):
+        self._current_slot = current_slot
+        self._slot_times = slot_times
+        self._slot_actives = slot_actives
+        super().__init__(cycle)
+
+    @property
+    def current_slot(self):
+        return self._current_slot
+
+    @ property
+    def slot_times(self):
+        return self._slot_times
+
+    @ property
+    def slot_actives(self):
+        return self._slot_actives
+
+    def _apply_state(self):
+        self.cycle.set_current_slot(self.current_slot)
+        self.cycle.set_slot_times(self.slot_times)
+        self.cycle.set_slot_actives(self.slot_actives)
+
+    def _feed(self, current_slot, slot_times, slot_actives):
+        if current_slot != self.current_slot:
+            self._current_slot = current_slot
+            self.cycle.set_current_slot(self.current_slot)
+        if slot_times != self.slot_times:
+            self._slot_times = slot_times
+            self.cycle.set_slot_times(self.slot_times)
+        if slot_actives != self.slot_actives:
+            self._slot_actives = slot_actives
+            self.cycle.set_slot_actives(self.slot_actives)
+        print(self.cycle.slot_times)
+        print(self.cycle.slot_actives)
+        print(self.cycle.current_slot)
+
+
 class PeriodicQuery(object):
-    def __init__(self, frequency=QUERY_FREQUENCY, *args):
-        self._electrovalve = Electrovalve(*args)
+    def __init__(self, frequency=QUERY_FREQUENCY, **kargs):
+        self._electrovalve = Electrovalve(**kargs)
+        self._cycle = Cycle(self.electrovalve, **kargs)
         self._server_status = ServerStatus()
         self._handlers = {
-            'status': StatusHandler(self.electrovalve,
-                                    self.server_status.is_running,
-                                    self.server_status.current_slot),
-            'schedule': ScheduleHandler(self.electrovalve,
-                                        self.server_status.programs)}
+            'status': StatusHandler(self.cycle,
+                                    self.server_status.is_running),
+            'schedule': ScheduleHandler(self.cycle,
+                                        self.server_status.programs),
+            'cycle': CycleHandler(self.cycle,
+                                  self.server_status.current_slot,
+                                  self.server_status.slot_times,
+                                  self.server_status.slot_actives)}
         self._frequency = frequency
         self._thread = None
 
     @ property
     def electrovalve(self):
         return self._electrovalve
+
+    @property
+    def cycle(self):
+        return self._cycle
 
     @ property
     def server_status(self):
@@ -368,9 +469,11 @@ class PeriodicQuery(object):
         return ProgramStatus.objects.all().values()[0]
 
     def _periodic_action(self):
-        self.handlers['status'].feed(self.server_status.is_running,
-                                     self.server_status.current_slot)
+        self.handlers['status'].feed(self.server_status.is_running)
         self.handlers['schedule'].feed(self.server_status.programs)
+        self.handlers['cycle'].feed(self.server_status.current_slot,
+                                    self.server_status.slot_times,
+                                    self.server_status.slot_actives)
         self._thread = None
         self.start()
 

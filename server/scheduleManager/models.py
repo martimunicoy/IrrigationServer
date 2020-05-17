@@ -25,6 +25,31 @@ class ProgramStatus(models.Model):
         db_table = 'program_status'
 
 
+class CycleSettings(models.Model):
+    slot1_time = models.PositiveIntegerField(default=60)
+    slot2_time = models.PositiveIntegerField(default=60)
+    slot3_time = models.PositiveIntegerField(default=60)
+    slot4_time = models.PositiveIntegerField(default=60)
+    slot5_time = models.PositiveIntegerField(default=60)
+    slot6_time = models.PositiveIntegerField(default=60)
+    slot1_active = models.BooleanField(default=True)
+    slot2_active = models.BooleanField(default=True)
+    slot3_active = models.BooleanField(default=True)
+    slot4_active = models.BooleanField(default=True)
+    slot5_active = models.BooleanField(default=True)
+    slot6_active = models.BooleanField(default='')
+    slot1_description = models.TextField(default='')
+    slot2_description = models.TextField(default='')
+    slot3_description = models.TextField(default='')
+    slot4_description = models.TextField(default='')
+    slot5_description = models.TextField(default='')
+    slot6_description = models.TextField(default='')
+
+    class Meta:
+        app_label = 'scheduleManager'
+        db_table = 'cycle_settings'
+
+
 class WeekDay(models.Model):
     name = models.CharField(max_length=10)
     day_id = models.AutoField(primary_key=True)
@@ -34,6 +59,21 @@ class WeekDay(models.Model):
         ordering = ['day_id', ]
         db_table = 'week_days'
 
+    def to_catalan(func):
+        def wrapper(*args):
+            english_weekdays = func(*args)
+            catalan_weekdays = english_weekdays.replace('Monday', 'Dilluns')
+            catalan_weekdays = catalan_weekdays.replace('Tuesday', 'Dimarts')
+            catalan_weekdays = catalan_weekdays.replace(
+                'Wednesday', 'Dimecres')
+            catalan_weekdays = catalan_weekdays.replace('Thursday', 'Dijous')
+            catalan_weekdays = catalan_weekdays.replace('Friday', 'Divendres')
+            catalan_weekdays = catalan_weekdays.replace('Saturday', 'Dissabte')
+            catalan_weekdays = catalan_weekdays.replace('Sunday', 'Diumenge')
+            return catalan_weekdays
+        return wrapper
+
+    @to_catalan
     def __str__(self):
         return self.name
 
@@ -54,6 +94,7 @@ WD_DICT_R = {1: 'Monday',
              6: 'Saturday',
              7: 'Sunday'}
 
+
 class IrrigationHour(models.Model):
     hour = models.TimeField()
     week_days = models.ManyToManyField(WeekDay)
@@ -69,7 +110,8 @@ class IrrigationHour(models.Model):
             english_weekdays = func(*args)
             catalan_weekdays = english_weekdays.replace('Monday', 'Dilluns')
             catalan_weekdays = catalan_weekdays.replace('Tuesday', 'Dimarts')
-            catalan_weekdays = catalan_weekdays.replace('Wednesday', 'Dimecres')
+            catalan_weekdays = catalan_weekdays.replace(
+                'Wednesday', 'Dimecres')
             catalan_weekdays = catalan_weekdays.replace('Thursday', 'Dijous')
             catalan_weekdays = catalan_weekdays.replace('Friday', 'Divendres')
             catalan_weekdays = catalan_weekdays.replace('Saturday', 'Dissabte')
@@ -89,7 +131,7 @@ class IrrigationHour(models.Model):
         indexes_list.sort()
 
         old_i = -1
-        n_neighbors = [0,] * 7
+        n_neighbors = [0, ] * 7
 
         for i in indexes_list:
             if (i == old_i + 1):
@@ -129,7 +171,8 @@ class IrrigationHour(models.Model):
         return out
 
     def __str__(self):
-        return '{}: {}'.format(self.print_weekdays_interval(), self.hour)
+        return '{}: {:02d}h{:02d}'.format(self.print_weekdays_interval(),
+                                          self.hour.hour, self.hour.minute)
 
 
 class WeatherData(models.Model):

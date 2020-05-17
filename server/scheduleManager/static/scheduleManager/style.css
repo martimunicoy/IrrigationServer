@@ -24,6 +24,11 @@ body {
     border: 1px solid grey;
 }
 
+.card p
+{
+    padding: 0 0 0 2em;
+}
+
 .card ol {
     padding: 0;
     counter-reset: item;
@@ -40,14 +45,20 @@ body {
 .card ol > li:before {
     display: inline-block;
     width: 1em;
-    padding-right: 1.25em;
+    padding-right: 0.75em;
     font-weight: bold;
     text-align: right;
     content: counter(item) ".";
 }
 
+.card ul {
+    padding: 0 0 0 2em;
+    counter-reset: item;
+}
+
 .card ul > li{
-    padding:0 0 0.5em 0.75em;
+    margin: 0;
+    padding:0 0 0.5em 0.5em;
 }
 
 /* Clear floats after the columns */
@@ -176,4 +187,130 @@ body {
     border: none;
     height: 175px;
     width: 100%;
+}
+
+.irrigation_hours_1{
+    width: 350px;
+    float: left;
+}
+
+.irrigation_hours_1 > li{
+    padding: 0 0 0 0.5em;
+    margin: 0.5em 0 0.5em 0;
+}
+
+.irrigation_hours_2{
+    margin: 0 2em 0 0.5em;
+    text-align: right;
+}
+
+.days_sel_1{
+    width: 50px;
+    float: left;
+}
+
+.days_sel_1 > li{
+    padding: 0 0 0.5em 0.5em;
+}
+
+.days_sel_2{
+    width: 140px;
+    margin: 0 0 0 0.5em;
+}
+
+.week_days_selector{
+    margin: 0 0 0 0.5em;
+    list-style-type: none;
+    font-size: 14px;
+    text-align: left;
+}
+
+.slot_settings{
+    columns: 2;
+    -webkit-columns: 2;
+    -moz-columns: 2;
+}
+
+.subslot_settings{
+    font-size: 14px;
+    margin: 0 0 0 -1.5em;
+}
+
+#irrigation_hours_list{
+}
+
+#status_apply{
+    padding: 0 1em 1em 1em;
+    text-align: right;
+}
+
+#irrigation_hour_add{
+    padding: 0 1em 1em 1em;
+    text-align: right;
+}
+
+#slot_apply
+{
+    padding: 0 1em 1em 1em;
+    margin-top: -1em;
+}
+
+#id_hour{
+    width: 35px;
+}
+
+#id_minute{
+    width: 35px;
+}
+
+#id_current_slot{
+    width: 35px;
+}
+
+#id_slot1_time{
+    width: 45px;
+}
+
+#id_slot1_description{
+    width: 65px;
+}
+
+#id_slot2_time{
+    width: 45px;
+}
+
+#id_slot2_description{
+    width: 65px;
+}
+
+#id_slot3_time{
+    width: 45px;
+}
+
+#id_slot3_description{
+    width: 65px;
+}
+
+#id_slot4_time{
+    width: 45px;
+}
+
+#id_slot4_description{
+    width: 65px;
+}
+
+#id_slot5_time{
+    width: 45px;
+}
+
+#id_slot5_description{
+    width: 65px;
+}
+
+#id_slot6_time{
+    width: 45px;
+}
+
+#id_slot6_description{
+    width: 65px;
 }
