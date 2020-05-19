@@ -30,10 +30,15 @@ MAX_SLOTS = 6
 class Electrovalve(object):
 
     def __init__(self, pin=27, gap=15):
+        self._pin = pin
         self._gap = gap
-        self._initial_setup(pin)
+        self._initial_setup()
         self.set_as_closed()
         # log.info(co.ELECTROVALVE_CONFIG.format(str(self.pin)))
+
+    @property
+    def pin(self):
+        return self._pin
 
     @property
     def gap(self):
@@ -47,13 +52,13 @@ class Electrovalve(object):
     def ready(self):
         return self._ready
 
-    def _initial_setup(self, pin):
+    def _initial_setup(self):
         if NO_RPI:
             return
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
-        GPIO.setup(pin, GPIO.OUT)
-        GPIO.output(pin, GPIO.LOW)
+        GPIO.setup(self.pin, GPIO.OUT)
+        GPIO.output(self.pin, GPIO.LOW)
 
     def set_as_open(self):
         self._ready = True
