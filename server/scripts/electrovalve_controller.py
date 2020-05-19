@@ -29,12 +29,17 @@ MAX_SLOTS = 6
 
 class Electrovalve(object):
 
-    def __init__(self, pin=27, gap=15):
+    def __init__(self, server_status, pin=27, gap=15):
+        self._server_status = server_status
         self._pin = pin
         self._gap = gap
         self._initial_setup()
         self.set_as_closed()
         # log.info(co.ELECTROVALVE_CONFIG.format(str(self.pin)))
+
+    @property
+    def server_status(self):
+        return self._server_status
 
     @property
     def pin(self):
@@ -43,6 +48,10 @@ class Electrovalve(object):
     @property
     def gap(self):
         return self._gap
+
+    @property
+    def active_slots(self):
+        return self._active_slots
 
     @property
     def status(self):
@@ -60,13 +69,19 @@ class Electrovalve(object):
         GPIO.setup(self.pin, GPIO.OUT)
         GPIO.output(self.pin, GPIO.LOW)
 
+    def set_active_slots(self, active_slots):
+        self._active_slots = active_slots
+
     def set_as_open(self):
         self._ready = True
         self._status = 'open'
+        self.server_status.set_as_running(True)
 
     def set_as_closed(self):
         self._ready = True
         self._status = 'closed'
+        self.server_status.set_as_running(False)
+        self.server_status.set_next_slot()
 
     def set_as_moving(self):
         self._ready = False
@@ -112,32 +127,30 @@ class Electrovalve(object):
 
 
 class Cycle(object):
-    def __init__(self, electrovalve, current_slot=1,
-                 slot_times=[60, 60, 60, 60, 60, 60],
-                 slot_actives=[False, False, False, False, False, False]):
+    def __init__(self, electrovalve):
         self._electrovalve = electrovalve
-        self._current_slot = current_slot
-        self._slot_times = slot_times
-        self._slot_actives = slot_actives
-
-    NUMBER_OF_SLOTS = 6
 
     @property
     def electrovalve(self):
         return self._electrovalve
 
     @property
+    def server_status(self):
+        return self.electrovalve.server_status
+
+    @property
     def current_slot(self):
-        return self._current_slot
+        return self.server_status.current_slot
 
     @property
     def slot_times(self):
-        return self._slot_times
+        return self.server_status.slot_times
 
     @property
     def slot_actives(self):
-        return self._slot_actives
+        return self.server_status.slot_actives
 
+    """
     def set_current_slot(self, current_slot):
         self._current_slot = current_slot
 
@@ -147,21 +160,21 @@ class Cycle(object):
     def set_slot_actives(self, slot_actives):
         self._slot_actives = slot_actives
 
-    def set_next_slot(self):
+    def __set_next_slot(self):
         self._current_slot += 1
         if self.current_slot >= self.NUMBER_OF_SLOTS:
             self._current_slot = 0
+    """
 
     def run(self):
         for _ in range(0, self.NUMBER_OF_SLOTS):
-            slot = self._current_slot
+            slot = self.current_slot
             slot_time = self.slot_times[slot]
             slot_active = self.slot_actives[slot]
             if slot_active:
                 self.electrovalve.open()
                 time.sleep(slot_time)
                 self.electrovalve.close()
-            self.set_next_slot()
 
 
 class ServerStatus(object):
@@ -235,8 +248,8 @@ class ServerStatus(object):
     SLOT_ACTIVES = ['slot1_active', 'slot2_active', 'slot3_active',
                     'slot4_active', 'slot5_active', 'slot6_active']
 
-    def _get_program_status(self):
-        return ProgramStatus.objects.all().values()[0]
+    def _get_status(self):
+        return ProgramStatus.objects.all()[0]
 
     def _get_programs(self):
         programs = []
@@ -252,11 +265,11 @@ class ServerStatus(object):
 
     @property
     def is_running(self):
-        return self._get_program_status()['running']
+        return self._get_status().running
 
     @property
     def current_slot(self):
-        return self._get_program_status()['current_slot']
+        return self._get_status().current_slot
 
     @property
     def programs(self):
@@ -271,6 +284,31 @@ class ServerStatus(object):
     def slot_actives(self):
         cycle_settings = self._get_cycle_settings()
         return [cycle_settings[i] for i in self.SLOT_ACTIVES]
+
+    def set_as_running(self, value):
+        status = self._get_status()
+        status.running = value
+        status.save()
+
+    def _set_current_slot(self, value):
+        status = self._get_status()
+        status.current_slot = value
+        status.save()
+
+    def set_next_slot(self):
+        if sum(self.slot_actives) == 0:
+            return
+
+        new_slot = self.current_slot + 1
+        max_slot = len(self.slot_actives)
+
+        if (new_slot >= max_slot):
+            new_slot = 1
+
+        self._set_current_slot(new_slot)
+
+        if not self.slot_actives[self.current_slot]:
+            self.set_next_slot()
 
 
 class Handler(object):
@@ -317,7 +355,7 @@ class ScheduleHandler(Handler):
         self._programs_to_load = set(current_programs)
         self._loaded_programs = []
         self._next_program = None
-        self._timer = None
+        self._thread = None
         super().__init__(cycle)
 
     @ property
@@ -333,8 +371,8 @@ class ScheduleHandler(Handler):
         return self._next_program
 
     @ property
-    def timer(self):
-        return self._timer
+    def thread(self):
+        return self._thread
 
     def _run_program(self):
         print(' - Running program')
@@ -358,25 +396,25 @@ class ScheduleHandler(Handler):
         self._loaded_programs.remove(program)
 
     def _set_timer(self):
-        self._timer = threading.Timer(self.next_program.get_delay(),
-                                      self._run_program)
-        self.timer.start()
+        self._thread = threading.Timer(self.next_program.get_delay(),
+                                       self._run_program)
+        self.thread.start()
 
     def load_program(self, program):
         self._check_loading_conditions_fulfillment(program)
         self._add_program_to_loaded_programs(program)
         if self.next_program != self.loaded_programs[0]:
             self._next_program = self.loaded_programs[0]
-            if self.timer is not None:
-                self.timer.cancel()
+            if self.thread is not None:
+                self.thread.cancel()
             self._set_timer()
 
     def unload_program(self, program):
         self._check_unloading_conditions_fulfillment(program)
         self._remove_program_to_loaded_programs(program)
-        self.timer.cancel()
+        self.thread.cancel()
         if len(self.loaded_programs) == 0:
-            self.timer = None
+            self._thread = None
         else:
             self._next_program = self.loaded_programs[0]
             self._set_timer()
@@ -392,64 +430,24 @@ class ScheduleHandler(Handler):
     def _feed(self, programs):
         self._programs_to_load = set(programs)
         self._apply_state()
-        print(datetime.now(), self.loaded_programs,
-              self.loaded_programs[0].get_delay())
-        print(self.timer)
 
-
-class CycleHandler(Handler):
-    def __init__(self, cycle, current_slot, slot_times, slot_actives):
-        self._current_slot = current_slot
-        self._slot_times = slot_times
-        self._slot_actives = slot_actives
-        super().__init__(cycle)
-
-    @property
-    def current_slot(self):
-        return self._current_slot
-
-    @ property
-    def slot_times(self):
-        return self._slot_times
-
-    @ property
-    def slot_actives(self):
-        return self._slot_actives
-
-    def _apply_state(self):
-        self.cycle.set_current_slot(self.current_slot)
-        self.cycle.set_slot_times(self.slot_times)
-        self.cycle.set_slot_actives(self.slot_actives)
-
-    def _feed(self, current_slot, slot_times, slot_actives):
-        if current_slot != self.current_slot:
-            self._current_slot = current_slot
-            self.cycle.set_current_slot(self.current_slot)
-        if slot_times != self.slot_times:
-            self._slot_times = slot_times
-            self.cycle.set_slot_times(self.slot_times)
-        if slot_actives != self.slot_actives:
-            self._slot_actives = slot_actives
-            self.cycle.set_slot_actives(self.slot_actives)
-        print(self.cycle.slot_times)
-        print(self.cycle.slot_actives)
-        print(self.cycle.current_slot)
+    def cancel_thread(self):
+        if self.thread is not None:
+            self.thread.cancel()
+            self._thread = None
 
 
 class PeriodicQuery(object):
     def __init__(self, frequency=QUERY_FREQUENCY, **kargs):
-        self._electrovalve = Electrovalve(**kargs)
-        self._cycle = Cycle(self.electrovalve, **kargs)
+        # server_status should know which slots are inactive
         self._server_status = ServerStatus()
+        self._electrovalve = Electrovalve(self.server_status, **kargs)
+        self._cycle = Cycle(self.electrovalve, **kargs)
         self._handlers = {
             'status': StatusHandler(self.cycle,
                                     self.server_status.is_running),
             'schedule': ScheduleHandler(self.cycle,
-                                        self.server_status.programs),
-            'cycle': CycleHandler(self.cycle,
-                                  self.server_status.current_slot,
-                                  self.server_status.slot_times,
-                                  self.server_status.slot_actives)}
+                                        self.server_status.programs)}
         self._frequency = frequency
         self._thread = None
 
@@ -489,13 +487,11 @@ class PeriodicQuery(object):
     def _periodic_action(self):
         self.handlers['status'].feed(self.server_status.is_running)
         self.handlers['schedule'].feed(self.server_status.programs)
-        self.handlers['cycle'].feed(self.server_status.current_slot,
-                                    self.server_status.slot_times,
-                                    self.server_status.slot_actives)
         self._thread = None
         self.start()
 
     def stop(self):
+        self._handlers['schedule'].cancel_thread()
         self.thread.cancel()
         self._thread = None
 
