@@ -150,6 +150,10 @@ class Cycle(object):
     def slot_actives(self):
         return self.server_status.slot_actives
 
+    @property
+    def n_slots(self):
+        return len(self.slot_times)
+
     """
     def set_current_slot(self, current_slot):
         self._current_slot = current_slot
@@ -167,14 +171,12 @@ class Cycle(object):
     """
 
     def run(self):
-        for _ in range(0, self.NUMBER_OF_SLOTS):
+        for _ in range(0, sum(self.slot_actives)):
             slot = self.current_slot
             slot_time = self.slot_times[slot]
-            slot_active = self.slot_actives[slot]
-            if slot_active:
-                self.electrovalve.open()
-                time.sleep(slot_time)
-                self.electrovalve.close()
+            self.electrovalve.open()
+            time.sleep(slot_time)
+            self.electrovalve.close()
 
 
 class ServerStatus(object):
@@ -182,6 +184,8 @@ class ServerStatus(object):
         def __init__(self, time, weekday):
             self._time = time
             self._weekday = weekday
+            self.__last_date_getter = None
+            self.__last_date = None
 
         WEEKDAY_TO_RRULE = {'Monday': rrule.MO,
                             'Tuesday': rrule.TU,
@@ -224,14 +228,22 @@ class ServerStatus(object):
 
         def get_date(self):
             start = datetime.now()
-            # start = start
+
+            # Optimal return when queries are done simultaneously
+            if self.__last_date_getter is not None:
+                if (start - self.__last_date_getter).total_seconds() < 60:
+                    return self.__last_date
+
             rule = rrule.rrule(
-                dtstart=start, freq=rrule.HOURLY,
+                dtstart=start, freq=rrule.MINUTELY,
                 byweekday=[self.WEEKDAY_TO_RRULE[self.weekday]])
 
             date = rule.between(start, start + timedelta(days=7), inc=True)[0]
             date = date.replace(hour=self.time.hour, minute=self.time.minute,
                                 second=self.time.second)
+
+            self.__last_date_getter = start
+            self.__last_date = date
 
             return date
 
@@ -269,7 +281,8 @@ class ServerStatus(object):
 
     @property
     def current_slot(self):
-        return self._get_status().current_slot
+        # We want a 0-based integer and it is 1-based
+        return self._get_status().current_slot - 1
 
     @property
     def programs(self):
@@ -291,8 +304,9 @@ class ServerStatus(object):
         status.save()
 
     def _set_current_slot(self, value):
+        # We are giving a 0-based integer and it expects a 1-based
         status = self._get_status()
-        status.current_slot = value
+        status.current_slot = value + 1
         status.save()
 
     def set_next_slot(self):
@@ -317,11 +331,11 @@ class Handler(object):
         self._electrovalve = cycle.electrovalve
         self._apply_state()
 
-    @ property
+    @property
     def cycle(self):
         return self._cycle
 
-    @ property
+    @property
     def electrovalve(self):
         return self._electrovalve
 
@@ -334,7 +348,7 @@ class StatusHandler(Handler):
         self._current_running_status = current_running_status
         super().__init__(cycle)
 
-    @ property
+    @property
     def current_running_status(self):
         return self._current_running_status
 
@@ -356,27 +370,30 @@ class ScheduleHandler(Handler):
         self._loaded_programs = []
         self._next_program = None
         self._thread = None
+        self.__running = False
         super().__init__(cycle)
 
-    @ property
+    @property
     def programs_to_load(self):
         return self._programs_to_load
 
-    @ property
+    @property
     def loaded_programs(self):
         return self._loaded_programs
 
-    @ property
+    @property
     def next_program(self):
         return self._next_program
 
-    @ property
+    @property
     def thread(self):
         return self._thread
 
     def _run_program(self):
+        self.__running = True
         print(' - Running program')
         self.cycle.run()
+        self.__running = False
 
         self.loaded_programs.sort()
         self._next_program = self.loaded_programs[0]
@@ -396,6 +413,9 @@ class ScheduleHandler(Handler):
         self._loaded_programs.remove(program)
 
     def _set_timer(self):
+        if self.__running:
+            return
+
         self._thread = threading.Timer(self.next_program.get_delay(),
                                        self._run_program)
         self.thread.start()
@@ -451,7 +471,7 @@ class PeriodicQuery(object):
         self._frequency = frequency
         self._thread = None
 
-    @ property
+    @property
     def electrovalve(self):
         return self._electrovalve
 
@@ -459,19 +479,19 @@ class PeriodicQuery(object):
     def cycle(self):
         return self._cycle
 
-    @ property
+    @property
     def server_status(self):
         return self._server_status
 
-    @ property
+    @property
     def handlers(self):
         return self._handlers
 
-    @ property
+    @property
     def frequency(self):
         return self._frequency
 
-    @ property
+    @property
     def thread(self):
         return self._thread
 
