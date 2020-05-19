@@ -120,6 +120,8 @@ class Cycle(object):
         self._slot_times = slot_times
         self._slot_actives = slot_actives
 
+    NUMBER_OF_SLOTS = 6
+
     @property
     def electrovalve(self):
         return self._electrovalve
@@ -145,11 +147,21 @@ class Cycle(object):
     def set_slot_actives(self, slot_actives):
         self._slot_actives = slot_actives
 
+    def set_next_slot(self):
+        self._current_slot += 1
+        if self.current_slot >= self.NUMBER_OF_SLOTS:
+            self._current_slot = 0
+
     def run(self):
-        for slot_time in self.slot_times:
-            self.electrovalve.open()
-            time.sleep(slot_time)
-            self.electrovalve.close()
+        for _ in range(0, self.NUMBER_OF_SLOTS):
+            slot = self._current_slot
+            slot_time = self.slot_times[slot]
+            slot_active = self.slot_actives[slot]
+            if slot_active:
+                self.electrovalve.open()
+                time.sleep(slot_time)
+                self.electrovalve.close()
+            self.set_next_slot()
 
 
 class ServerStatus(object):
@@ -326,6 +338,7 @@ class ScheduleHandler(Handler):
 
     def _run_program(self):
         print(' - Running program')
+        self.cycle.run()
 
         self.loaded_programs.sort()
         self._next_program = self.loaded_programs[0]
