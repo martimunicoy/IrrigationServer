@@ -1,0 +1,22 @@
+{% extends 'widget.html' %}
+
+{% block content %}
+<h1>Control manual</h1>
+{% if status_updater_form %}
+    <div class="card">
+        <form method="post", id="status_form">
+            {% csrf_token %}
+            <ul>
+                <li> Rec obert: {{ status_updater_form.running }} </li>
+                <li> Posició: {{ status_updater_form.current_slot }} </li>
+            </ul>
+            <div id=status_apply>
+                <input type="submit" value="Aplicar">
+            </div>
+        </form>
+    </div>
+{% else %}
+    <p>Control manual del servidor no disponible.</p>
+{% endif %}
+
+{% endblock %}

@@ -10,8 +10,9 @@ urlpatterns = [
     path('submit_status', views.submit_status, name='submit_status'),
     path('submit_irrigation_hour', views.submit_irrigation_hour,
          name='submit_irrigation_hour'),
-    path('submit_cycle_settings', views.submit_cycle_settings,
-         name='submit_cycle_settings'),
     url(r'^delete/(?P<pk>\d+)/$', views.irrigation_hour_delete,
-        name='irrigation_hour_delete')
+        name='irrigation_hour_delete'),
+    url(r'^ajax/submit_status/$', views.submit_status, name='submit_status'),
+    url(r'^ajax/submit_cycle_settings/$', views.submit_cycle_settings,
+        name='submit_cycle_settings')
 ]

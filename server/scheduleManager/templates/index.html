@@ -33,26 +33,12 @@
         </p>
     </div>
     {% endif %}
+    <div id="ajax_messages_block">
+    </div>
     <div class="row">
         <div class="leftcolumn">
             <div class="leftframe">
-                <h1>Estat actual</h1>
-                {% if status_updater_form %}
-                    <div class="card">
-                        <form action="/scheduleManager/submit_status" method="post">
-                            {% csrf_token %}
-                            <ul>
-                                <li> Rec obert: {{ status_updater_form.running }} </li>
-                                <li> Posició: {{ status_updater_form.current_slot }} </li>
-                            </ul>
-                            <div id=status_apply>
-                                <input type="submit" value="Aplicar">
-                            </div>
-                        </form>
-                    </div>
-                {% else %}
-                    <p>Estat actual del servidor no disponible.</p>
-                {% endif %}
+                {% include "manual.html" %}
             </div>
             <div class="leftframe">
                 <h1>Nou programa</h1>
@@ -108,82 +94,7 @@
                 </div>
             </div>
             <div class="rightframe">
-                <h1>Configuració del cicle</h1>
-                <div class="card">
-                    <form action="/scheduleManager/submit_cycle_settings" method="post">
-                        <!-- Listing scheduled hours -->
-                        {% if cycle_settings_form %}
-                        <ul class="slot_settings">
-                            <li> Posició 1:
-                                <ul class="subslot_settings">
-                                    <li> Descripció: {{ cycle_settings_form.slot1_description }}
-                                    </li>
-                                    <li> Activat: {{ cycle_settings_form.slot1_active }}
-                                    </li>
-                                    <li> Temps de rec: {{ cycle_settings_form.slot1_time }} s
-                                    </li>
-                                </ul>
-                            </li>
-                            <li> Posició 2:
-                                <ul class="subslot_settings">
-                                    <li> Descripció: {{ cycle_settings_form.slot2_description }}
-                                    </li>
-                                    <li> Activat: {{ cycle_settings_form.slot2_active }}
-                                    </li>
-                                    <li> Temps de rec: {{ cycle_settings_form.slot2_time }} s
-                                    </li>
-                                    </ul>
-                            </li>
-                            <li> Posició 3:
-                                <ul class="subslot_settings">
-                                    <li> Descripció: {{ cycle_settings_form.slot3_description }}
-                                    </li>
-                                    <li> Activat: {{ cycle_settings_form.slot3_active }}
-                                    </li>
-                                    <li> Temps de rec: {{ cycle_settings_form.slot3_time }} s
-                                    </li>
-                                </ul>
-                            </li>
-                            <li> Posició 4:
-                                <ul class="subslot_settings">
-                                    <li> Descripció: {{cycle_settings_form.slot4_description }}
-                                    </li>
-                                    <li> Activat: {{ cycle_settings_form.slot4_active }}
-                                    </li>
-                                    <li> Temps de rec: {{ cycle_settings_form.slot4_time }} s
-                                    </li>
-                                </ul>
-                            </li>
-                            <li> Posició 5:
-                                <ul class="subslot_settings">
-                                    <li> Descripció: {{ cycle_settings_form.slot5_description }}
-                                    </li>
-                                    <li> Activat: {{ cycle_settings_form.slot5_active }}
-                                    </li>
-                                    <li> Temps de rec: {{ cycle_settings_form.slot5_time }} s
-                                    </li>
-                                </ul>
-                            </li>
-                            <li> Posició 6:
-                                <ul class="subslot_settings">
-                                    <li> Descripció: {{ cycle_settings_form.slot6_description }}
-                                    </li>
-                                    <li> Activat: {{ cycle_settings_form.slot6_active }}
-                                    </li>
-                                    <li> Temps de rec: {{ cycle_settings_form.slot6_time }} s
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                        {% csrf_token %}
-                        <div id=slot_apply>
-                            <input type="submit" value="Aplicar">
-                        </div>
-                    </form>
-                    {% else %}
-                        <p>Configuració del cicle no disponible.</p>
-                    {% endif %}
-                </div>
+                {% include "cycle.html" %}
             </div>
         </div>
     </div>
