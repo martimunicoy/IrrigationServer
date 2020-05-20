@@ -80,10 +80,6 @@ def submit_status(request):
 
         server_status = ProgramStatus.objects.all()[0]
 
-        print(server_status.running, running)
-
-        print(server_status.current_slot, current_slot)
-
         if (server_status.running != running):
             messages.success(request,
                              'El rec s\'ha {} satisfactòriament'.format(
