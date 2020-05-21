@@ -1,0 +1,23 @@
+<h1>Llistat de programes</h1>
+<div class="card">
+    <!-- Listing scheduled hours -->
+    {% if irrigation_hours %}
+        <ul id="irrigation_hours_list">
+            {% for irrigation_hour in irrigation_hours %}
+            <div class="irrigation_hours_1">
+                <li> {{ irrigation_hour }} </li>
+            </div>
+            <div class="irrigation_hours_2">
+                <form action="{% url 'scheduleManager:irrigation_hour_delete'
+                               irrigation_hour.hour_id %}" method="post">
+                    {% csrf_token %}
+                    <input type="submit" value="Eliminar">
+                </form>
+            </div>
+            <div style="clear: left"> </div>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Encara no hi ha cap programa establert.</p>
+    {% endif %}
+</div>

@@ -38,65 +38,28 @@
     <div class="row">
         <div class="leftcolumn">
             <div class="leftframe">
+                {% include "info.html" %}
+            </div>
+            <div class="leftframe">
                 {% include "manual.html" %}
             </div>
             <div class="leftframe">
-                <h1>Nou programa</h1>
-                {% if irrigation_hour_form %}
-                    <div class="card">
-                        <form action="/scheduleManager/submit_irrigation_hour" method="post">
-                            {% csrf_token %}
-                            <ul>
-                                <li> Hora: {{ irrigation_hour_form.hour }} : {{ irrigation_hour_form.minute }}</li>
-                                <div class="days_sel_1"><li> Dies: </li></div> <div class="days_sel_2">{{ irrigation_hour_form.week_day }} </div>
-                            </ul>
-                            <div id=irrigation_hour_add>
-                                <input type="submit" value="Afegir">
-                            </div>
-                        </form>
-                    </div>
-                {% else %}
-                    <p>Configuració de nous programes no disponible.</p>
-                {% endif %}
+                {% include "add_program.html" %}
             </div>
         </div>
         <div class="rightcolumn">
             <div class="rightframe">
-                <h1>Visualitzador diari</h1>
-                <div class="card">
-                    {% autoescape off %}
-                    {{ plot_div }}
-                    {% endautoescape %}
-                </div>
+                {% include "plot.html" %}
             </div>
             <div class="rightframe">
-                <h1>Llistat de programes</h1>
-                <div class="card">
-                    <!-- Listing scheduled hours -->
-                    {% if irrigation_hours %}
-                        <ul id="irrigation_hours_list">
-                        {% for irrigation_hour in irrigation_hours %}
-                            <div class="irrigation_hours_1">
-                                <li> {{ irrigation_hour }} </li>
-                            </div>
-                            <div class="irrigation_hours_2">
-                                <form action="{% url 'scheduleManager:irrigation_hour_delete' irrigation_hour.hour_id %}" method="post">
-                                    {% csrf_token %}
-                                    <input type="submit" value="Eliminar">
-                                </form>
-                            </div>
-                            <div style="clear: left"> </div>
-                        {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p>Encara no hi ha cap programa establert.</p>
-                    {% endif %}
-                </div>
+                {% include "programs.html" %}
             </div>
             <div class="rightframe">
                 {% include "cycle.html" %}
             </div>
         </div>
     </div>
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+    <script src="{% static 'scheduleManager/scripts/main.js' %}"></script>
 </body>
 </html>

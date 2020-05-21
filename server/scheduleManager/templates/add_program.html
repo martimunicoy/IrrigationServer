@@ -1,0 +1,25 @@
+<h1>Nou programa</h1>
+{% if irrigation_hour_form %}
+<div class="card">
+    <form action="/scheduleManager/submit_irrigation_hour" method="post">
+    {% csrf_token %}
+    <ul>
+        <li>
+            Hora: {{ irrigation_hour_form.hour }} :
+            {{ irrigation_hour_form.minute }}
+        </li>
+        <div class="days_sel_1">
+            <li> Dies: </li>
+        </div>
+        <div class="days_sel_2">
+            {{ irrigation_hour_form.week_day }}
+        </div>
+    </ul>
+    <div id=irrigation_hour_add>
+        <input type="submit" value="Afegir">
+    </div>
+    </form>
+</div>
+{% else %}
+    <p>Configuració de nous programes no disponible.</p>
+{% endif %}

@@ -1,0 +1,15 @@
+<h1>Estat actual</h1>
+{% if info %}
+    <div class="card">
+        <ul id="info_card">
+            <li>
+                Estat del rec: {{ info.running }}
+            </li>
+            <li>
+                Posició: {{ info.slot }}
+            </li>
+        </ul>
+    </div>
+{% else %}
+    <p>Estat actual del servidor no disponible.</p>
+{% endif %}

@@ -15,6 +15,7 @@ from . import graphs
 
 
 def index(request):
+    info = ProgramStatus.objects.all()[0]
     irrigation_hours = IrrigationHour.objects.all()
 
     if (len(ProgramStatus.objects.all()) != 1):
@@ -51,7 +52,8 @@ def index(request):
 
     plt_div = graphs.create_schedule_graph(hour_range=24)
 
-    context = {'irrigation_hours': irrigation_hours,
+    context = {'info': info,
+               'irrigation_hours': irrigation_hours,
                'status_updater_form': status_updater_form,
                'irrigation_hour_form': irrigation_hour_form,
                'cycle_settings_form': cycle_settings_form,
@@ -71,6 +73,18 @@ def handle_messages(request, response_data=None):
     response_data['messages'] = django_messages
 
     return response_data
+
+
+def refresh_info(request):
+    info = ProgramStatus.objects.all()[0]
+
+    response_data = {}
+    response_data['running'] = info.running_state
+    response_data['slot_num'] = info.current_slot
+    response_data['slot_desc'] = info.slot_description
+
+    return HttpResponse(json.dumps(response_data),
+                        content_type="application/json")
 
 
 def submit_status(request):

@@ -314,3 +314,8 @@ body {
 #id_slot6_description{
     width: 65px;
 }
+
+#slot_info_list{
+    padding: 0.5em 0 0 0.5em;
+    font-size: 14px;
+}

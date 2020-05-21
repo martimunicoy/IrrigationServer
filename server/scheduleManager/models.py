@@ -24,6 +24,18 @@ class ProgramStatus(models.Model):
         app_label = 'scheduleManager'
         db_table = 'program_status'
 
+    @property
+    def running_state(self):
+        if self.running:
+            return 'obert'
+        else:
+            return 'tancat'
+
+    @property
+    def slot_description(self):
+        cycle_settings = CycleSettings.objects.all()[0]
+        return cycle_settings.get_description(self.current_slot)
+
 
 class CycleSettings(models.Model):
     slot1_time = models.PositiveIntegerField(default=60)
@@ -48,6 +60,22 @@ class CycleSettings(models.Model):
     class Meta:
         app_label = 'scheduleManager'
         db_table = 'cycle_settings'
+
+    def get_description(self, slot_id):
+        if (slot_id == 1):
+            return self.slot1_description
+        elif (slot_id == 2):
+            return self.slot2_description
+        elif (slot_id == 3):
+            return self.slot3_description
+        elif (slot_id == 4):
+            return self.slot4_description
+        elif (slot_id == 5):
+            return self.slot5_description
+        elif (slot_id == 6):
+            return self.slot6_description
+        else:
+            return 'Desconegut'
 
 
 class WeekDay(models.Model):

@@ -1,5 +1,32 @@
 var csrftoken = $("[name=csrfmiddlewaretoken]").val();
 
+function update_info_div(running, slot_num, slot_desc){
+    $("#info_card").html('');
+    $("#info_card").append("<li>Estat del rec: " + running + "</li>")
+    $("#info_card").append("<li>Posició:<ul id='slot_info_list'><li>Número: " +
+                           slot_num + "</li>" + "<li>Descripció: " + slot_desc +
+                           "</li></ul></li>")
+}
+
+function autoRefresh_info() {
+    console.log("Loading info card") // sanity check
+    $.ajax({
+        url : "ajax/refresh_info/", // the endpoint
+
+        // handle a successful response
+        success : function(json) {
+            console.log(json); // log the returned json to the console
+            console.log("Success"); // another sanity check
+            update_info_div(json.running, json.slot_num, json.slot_desc);  // update div
+        },
+
+        // handle a non-successful response
+        error : function(xhr,errmsg,err) {
+            console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+        }
+    });
+}
+
 $("#status_form").on('submit', function(event){
     event.preventDefault()
     console.log("Status submitted") // sanity check
@@ -128,3 +155,8 @@ function update_cycle() {
         }
     });
 };
+
+// Refresh info card
+setInterval(autoRefresh_info, 5000); // every 5 seconds
+autoRefresh_info(); // on load
+
