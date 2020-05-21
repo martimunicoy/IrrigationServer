@@ -17,5 +17,4 @@ urlpatterns = [
         name='submit_cycle_settings'),
     url(r'^ajax/refresh_info/$', views.refresh_info,
         name='refresh_info')
-
 ]

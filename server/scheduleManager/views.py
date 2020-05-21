@@ -90,7 +90,10 @@ def refresh_info(request):
 def submit_status(request):
     if request.method == 'POST':
         running = json.loads(request.POST.get('running'))
-        current_slot = int(request.POST.get('current_slot'))
+        try:
+            current_slot = int(request.POST.get('current_slot'))
+        except ValueError:
+            current_slot = None
 
         server_status = ProgramStatus.objects.all()[0]
 
@@ -100,7 +103,8 @@ def submit_status(request):
                                  ('obert', 'tancat')[int(running is False)]))
             server_status.running = running
 
-        if (server_status.current_slot != current_slot):
+        if (current_slot is not None
+                and server_status.current_slot != current_slot):
             messages.success(request, 'Posició canviada satisfactòriament')
             server_status.current_slot = current_slot
 

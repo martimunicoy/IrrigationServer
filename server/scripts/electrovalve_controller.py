@@ -25,6 +25,7 @@ from scheduleManager.models import ProgramStatus, IrrigationHour, CycleSettings
 
 QUERY_FREQUENCY = int(1)  # 1 second
 MAX_SLOTS = 6
+GAP = 5
 
 
 class Electrovalve(object):
@@ -34,7 +35,7 @@ class Electrovalve(object):
         self._pin = pin
         self._gap = gap
         self._initial_setup()
-        self.set_as_closed()
+        self.set_as_closed(change_slot=False)
         # log.info(co.ELECTROVALVE_CONFIG.format(str(self.pin)))
 
     @property
@@ -77,11 +78,12 @@ class Electrovalve(object):
         self._status = 'open'
         self.server_status.set_as_running(True)
 
-    def set_as_closed(self):
+    def set_as_closed(self, change_slot=True):
         self._ready = True
         self._status = 'closed'
         self.server_status.set_as_running(False)
-        self.server_status.set_next_slot()
+        if change_slot:
+            self.server_status.set_next_slot()
 
     def set_as_moving(self):
         self._ready = False
@@ -101,7 +103,7 @@ class Electrovalve(object):
                 GPIO.output(self.pin, GPIO.HIGH)
             time.sleep(self.gap)
 
-    def close(self):
+    def close(self, change_slot=True):
         if self.ready:
             if self.status == 'open':
                 if NO_RPI:
@@ -109,7 +111,7 @@ class Electrovalve(object):
                 else:
                     GPIO.output(self.pin, GPIO.LOW)
                 time.sleep(self.gap)
-            self.set_as_closed()
+            self.set_as_closed(change_slot)
         elif self.status == 'moving':
             if NO_RPI:
                 print(' - Moving electrovalve')
@@ -314,10 +316,10 @@ class ServerStatus(object):
             return
 
         new_slot = self.current_slot + 1
-        max_slot = len(self.slot_actives)
+        max_slot = self.slot_actives.count(True)
 
-        if (new_slot >= max_slot):
-            new_slot = 1
+        if (new_slot >= len(self.slot_times)):
+            new_slot = 0
 
         self._set_current_slot(new_slot)
 
@@ -329,7 +331,7 @@ class Handler(object):
     def __init__(self, cycle):
         self._cycle = cycle
         self._electrovalve = cycle.electrovalve
-        self._apply_state()
+        self._apply_state(first_call=True)
 
     @property
     def cycle(self):
@@ -352,11 +354,14 @@ class StatusHandler(Handler):
     def current_running_status(self):
         return self._current_running_status
 
-    def _apply_state(self):
+    def _apply_state(self, first_call=False):
         if self.current_running_status:
             self.electrovalve.open()
         else:
-            self.electrovalve.close()
+            if first_call:
+                self.electrovalve.close(change_slot=False)
+            else:
+                self.electrovalve.close()
 
     def _feed(self, running_status):
         if running_status != self.current_running_status:
@@ -439,7 +444,7 @@ class ScheduleHandler(Handler):
             self._next_program = self.loaded_programs[0]
             self._set_timer()
 
-    def _apply_state(self):
+    def _apply_state(self, first_call=False):
         for program_to_load in self.programs_to_load.difference(
                 self.loaded_programs):
             self.load_program(program_to_load)
@@ -461,7 +466,7 @@ class PeriodicQuery(object):
     def __init__(self, frequency=QUERY_FREQUENCY, **kargs):
         # server_status should know which slots are inactive
         self._server_status = ServerStatus()
-        self._electrovalve = Electrovalve(self.server_status, **kargs)
+        self._electrovalve = Electrovalve(self.server_status, gap=GAP, **kargs)
         self._cycle = Cycle(self.electrovalve, **kargs)
         self._handlers = {
             'status': StatusHandler(self.cycle,

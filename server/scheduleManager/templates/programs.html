@@ -8,8 +8,7 @@
                 <li> {{ irrigation_hour }} </li>
             </div>
             <div class="irrigation_hours_2">
-                <form action="{% url 'scheduleManager:irrigation_hour_delete'
-                               irrigation_hour.hour_id %}" method="post">
+                <form action="{% url 'scheduleManager:irrigation_hour_delete' irrigation_hour.hour_id %}" method="post">
                     {% csrf_token %}
                     <input type="submit" value="Eliminar">
                 </form>
