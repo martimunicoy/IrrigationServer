@@ -1,11 +1,17 @@
 var csrftoken = $("[name=csrfmiddlewaretoken]").val();
 
-function update_info_div(running, slot_num, slot_desc){
+function update_info_div(running, manual, slot_num, slot_desc){
     $("#info_card").html('');
-    $("#info_card").append("<li>Estat del rec: " + running + "</li>")
-    $("#info_card").append("<li>Posició:<ul id='slot_info_list'><li>Número: " +
-                           slot_num + "</li>" + "<li>Descripció: " + slot_desc +
-                           "</li></ul></li>")
+    if (running == "Regant"){
+        $("#info_card").append("<li>" + running + "</li>")
+    }
+    else{
+        $("#info_card").append("<li>" + running + "</li>")
+    }
+    $("#info_card").append("<li>" + manual + "</li>")
+    $("#info_card").append("<li>Posició actual:<ul id='slot_info_list'>" +
+                           "<li>Número: " + slot_num + "</li>" +
+                           "<li>Descripció: " + slot_desc + "</li></ul></li>")
 }
 
 function autoRefresh_info() {
@@ -17,7 +23,8 @@ function autoRefresh_info() {
         success : function(json) {
             console.log(json); // log the returned json to the console
             console.log("Success"); // another sanity check
-            update_info_div(json.running, json.slot_num, json.slot_desc);  // update div
+            update_info_div(json.running, json.manual, json.slot_num,
+                            json.slot_desc);  // update div
         },
 
         // handle a non-successful response
@@ -25,6 +32,22 @@ function autoRefresh_info() {
             console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
         }
     });
+}
+
+function update_manual_controllers(value){
+    if (value == 1){
+        document.getElementById('id_running').disabled = false
+        document.getElementById('id_current_slot').disabled = false
+    }
+    else{
+        document.getElementById('id_running').disabled = true
+        document.getElementById('id_current_slot').disabled = true
+    }
+}
+
+function on_start(){
+    var radio_value = $('input[name=manual]:checked', '#status_form').val()
+    update_manual_controllers(radio_value)
 }
 
 $("#status_form").on('submit', function(event){
@@ -62,6 +85,15 @@ function update_status() {
 
     var running = document.getElementById('id_running').checked
     var current_slot = document.getElementById('id_current_slot').value
+    var radio_value = $('input[name=manual]:checked', '#status_form').val()
+
+    if (radio_value == 1){
+        manual = true
+    }
+    else
+    {
+        manual = false
+    }
 
     $.ajax({
         url : "ajax/submit_status/", // the endpoint
@@ -71,6 +103,7 @@ function update_status() {
     },
         data : { running : running,
                  current_slot: current_slot,
+                 manual : manual
                   }, // data sent with the post request
 
         // handle a successful response
@@ -156,7 +189,17 @@ function update_cycle() {
     });
 };
 
+// Manual control
+$("#manual_mode_choice").click(function(){
+    console.log("Manual checking") // sanity check
+    var radio_value = $('input[name=manual]:checked', '#status_form').val()
+
+    update_manual_controllers(radio_value)
+});
+
 // Refresh info card
-setInterval(autoRefresh_info, 5000); // every 5 seconds
+setInterval(autoRefresh_info, 1000); // every 2 seconds
 autoRefresh_info(); // on load
 
+// On start
+on_start();

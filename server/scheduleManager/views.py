@@ -23,9 +23,13 @@ def index(request):
     server_status = ProgramStatus.objects.all()[0]
     cycle_settings = CycleSettings.objects.all()[0]
 
+    if server_status.manual:
+        status_update_form_initial = {'manual': 1}
+    else:
+        status_update_form_initial = {'manual': 0}
+
     status_updater_form = StatusUpdaterForm(
-        initial={'current_slot': server_status.current_slot,
-                 'running': server_status.running})
+        initial=status_update_form_initial)
 
     irrigation_hour_form = IrrigationHourForm(
         initial={'hour': 0, 'minute': 0})
@@ -80,6 +84,7 @@ def refresh_info(request):
 
     response_data = {}
     response_data['running'] = info.running_state
+    response_data['manual'] = info.manual_state
     response_data['slot_num'] = info.current_slot
     response_data['slot_desc'] = info.slot_description
 
@@ -89,6 +94,7 @@ def refresh_info(request):
 
 def submit_status(request):
     if request.method == 'POST':
+        manual = json.loads(request.POST.get('manual'))
         running = json.loads(request.POST.get('running'))
         try:
             current_slot = int(request.POST.get('current_slot'))
@@ -97,16 +103,27 @@ def submit_status(request):
 
         server_status = ProgramStatus.objects.all()[0]
 
-        if (server_status.running != running):
+        if manual != server_status.manual:
             messages.success(request,
-                             'El rec s\'ha {} satisfactòriament'.format(
-                                 ('obert', 'tancat')[int(running is False)]))
-            server_status.running = running
+                             'Mode {} '.format(('automàtic', 'manual')
+                                               [manual == True]) + 'establert')
 
-        if (current_slot is not None
-                and server_status.current_slot != current_slot):
-            messages.success(request, 'Posició canviada satisfactòriament')
-            server_status.current_slot = current_slot
+        if manual == 0:  # automatic mode
+            server_status.manual = False
+        else:  # manual mode
+            server_status.manual = True
+
+            if (server_status.running != running):
+                messages.success(
+                    request,
+                    'El rec s\'ha {} satisfactòriament'.format(
+                        ('obert', 'tancat')[int(running is False)]))
+                server_status.running = running
+
+            if (current_slot is not None
+                    and server_status.current_slot != current_slot):
+                messages.success(request, 'Posició canviada satisfactòriament')
+                server_status.current_slot = current_slot
 
         server_status.save()
 

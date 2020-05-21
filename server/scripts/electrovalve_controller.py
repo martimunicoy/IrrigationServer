@@ -156,22 +156,6 @@ class Cycle(object):
     def n_slots(self):
         return len(self.slot_times)
 
-    """
-    def set_current_slot(self, current_slot):
-        self._current_slot = current_slot
-
-    def set_slot_times(self, slot_times):
-        self._slot_times = slot_times
-
-    def set_slot_actives(self, slot_actives):
-        self._slot_actives = slot_actives
-
-    def __set_next_slot(self):
-        self._current_slot += 1
-        if self.current_slot >= self.NUMBER_OF_SLOTS:
-            self._current_slot = 0
-    """
-
     def run(self):
         for _ in range(0, sum(self.slot_actives)):
             slot = self.current_slot
@@ -278,6 +262,10 @@ class ServerStatus(object):
         return CycleSettings.objects.all().values()[0]
 
     @property
+    def manual_mode(self):
+        return self._get_status().manual
+
+    @property
     def is_running(self):
         return self._get_status().running
 
@@ -312,7 +300,7 @@ class ServerStatus(object):
         status.save()
 
     def set_next_slot(self):
-        if sum(self.slot_actives) == 0:
+        if self.slot_actives.count(True) == 0:
             return
 
         new_slot = self.current_slot + 1
@@ -345,7 +333,7 @@ class Handler(object):
         self._feed(*args)
 
 
-class StatusHandler(Handler):
+class ManualHandler(Handler):
     def __init__(self, cycle, current_running_status):
         self._current_running_status = current_running_status
         super().__init__(cycle)
@@ -355,18 +343,13 @@ class StatusHandler(Handler):
         return self._current_running_status
 
     def _apply_state(self, first_call=False):
-        if self.current_running_status:
-            self.electrovalve.open()
-        else:
-            if first_call:
-                self.electrovalve.close(change_slot=False)
-            else:
-                self.electrovalve.close()
+        pass
 
     def _feed(self, running_status):
-        if running_status != self.current_running_status:
-            self._current_running_status = running_status
-            self._apply_state()
+        if running_status and self.electrovalve.status == 'closed':
+            self.electrovalve.open()
+        elif running_status is False and self.electrovalve.status == 'open':
+            self.electrovalve.close()
 
 
 class ScheduleHandler(Handler):
@@ -437,24 +420,22 @@ class ScheduleHandler(Handler):
     def unload_program(self, program):
         self._check_unloading_conditions_fulfillment(program)
         self._remove_program_to_loaded_programs(program)
-        self.thread.cancel()
-        if len(self.loaded_programs) == 0:
-            self._thread = None
-        else:
+        self.cancel_thread()
+        if len(self.loaded_programs) > 0:
             self._next_program = self.loaded_programs[0]
             self._set_timer()
 
     def _apply_state(self, first_call=False):
+        pass
+
+    def _feed(self, programs):
+        self._programs_to_load = set(programs)
         for program_to_load in self.programs_to_load.difference(
                 self.loaded_programs):
             self.load_program(program_to_load)
         for program_to_unload in set(self.loaded_programs).difference(
                 self.programs_to_load):
             self.unload_program(program_to_unload)
-
-    def _feed(self, programs):
-        self._programs_to_load = set(programs)
-        self._apply_state()
 
     def cancel_thread(self):
         if self.thread is not None:
@@ -469,7 +450,7 @@ class PeriodicQuery(object):
         self._electrovalve = Electrovalve(self.server_status, gap=GAP, **kargs)
         self._cycle = Cycle(self.electrovalve, **kargs)
         self._handlers = {
-            'status': StatusHandler(self.cycle,
+            'manual': ManualHandler(self.cycle,
                                     self.server_status.is_running),
             'schedule': ScheduleHandler(self.cycle,
                                         self.server_status.programs)}
@@ -510,8 +491,11 @@ class PeriodicQuery(object):
         return ProgramStatus.objects.all().values()[0]
 
     def _periodic_action(self):
-        self.handlers['status'].feed(self.server_status.is_running)
-        self.handlers['schedule'].feed(self.server_status.programs)
+        if self.server_status.manual_mode:
+            self.handlers['schedule'].cancel_thread()
+            self.handlers['manual'].feed(self.server_status.is_running)
+        else:
+            self.handlers['schedule'].feed(self.server_status.programs)
         self._thread = None
         self.start()
 

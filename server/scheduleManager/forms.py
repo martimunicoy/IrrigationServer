@@ -5,6 +5,9 @@ from .models import WeekDay
 
 
 class StatusUpdaterForm(forms.Form):
+    manual = forms.ChoiceField(widget=forms.RadioSelect(
+                               attrs={'id': 'manual_mode_choice'}),
+                               choices=[(0, 'Automàtic'), (1, 'Manual')])
     running = forms.BooleanField(required=False)
     current_slot = forms.DecimalField(
         label='', max_value=6, min_value=1, max_digits=1, decimal_places=0,

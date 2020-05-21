@@ -16,8 +16,8 @@ class IrrigationSlot(models.Model):
 
 
 class ProgramStatus(models.Model):
+    manual = models.BooleanField(default=True)
     running = models.BooleanField(default=False)
-    testing = models.BooleanField(default=False)
     current_slot = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -27,9 +27,16 @@ class ProgramStatus(models.Model):
     @property
     def running_state(self):
         if self.running:
-            return 'obert'
+            return 'Regant'
         else:
-            return 'tancat'
+            return 'Aturat'
+
+    @property
+    def manual_state(self):
+        if self.manual:
+            return 'Mode manual'
+        else:
+            return 'Mode automàtic'
 
     @property
     def slot_description(self):

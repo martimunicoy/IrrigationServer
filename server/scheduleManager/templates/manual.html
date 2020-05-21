@@ -4,6 +4,7 @@
         <form method="post", id="status_form">
             {% csrf_token %}
             <ul>
+                <li> Mode: {{ status_updater_form.manual }} </li>
                 <li> Rec obert: {{ status_updater_form.running }} </li>
                 <li> Posició: {{ status_updater_form.current_slot }} </li>
             </ul>
