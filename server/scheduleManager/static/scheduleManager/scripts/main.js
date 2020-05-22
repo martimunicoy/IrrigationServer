@@ -1,6 +1,7 @@
 var csrftoken = $("[name=csrfmiddlewaretoken]").val();
 
-function update_info_div(running, manual, slot_num, slot_desc, hour_date){
+function update_info_div(running, manual, slot_num, slot_desc, hour_date,
+                         hour_delay){
     $("#info_card").html('');
     $("#info_card").append("<li>" + running + "</li>")
     $("#info_card").append("<li>" + manual + "</li>")
@@ -9,7 +10,7 @@ function update_info_div(running, manual, slot_num, slot_desc, hour_date){
                            "<li>Descripció: " + slot_desc + "</li></ul></li>")
     $("#info_card").append("<li>Següent programa:<ul id='hour_info_list'>" +
                            "<li>Hora:<p>" + hour_date + "</p></li>" +
-                           "<li>Restant:<p>" + "?" + "</p></li></ul></li>")
+                           "<li>Restant:<p>" + hour_delay + "</p></li></ul></li>")
 }
 
 function autoRefresh_info() {
@@ -22,7 +23,7 @@ function autoRefresh_info() {
             console.log(json); // log the returned json to the console
             console.log("Success"); // another sanity check
             update_info_div(json.running, json.manual, json.slot_num,
-                            json.slot_desc, json.hour_date);
+                            json.slot_desc, json.hour_date, json.hour_delay);
         },
 
         // handle a non-successful response

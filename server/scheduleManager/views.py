@@ -90,8 +90,8 @@ def refresh_info(request):
     response_data['manual'] = info.manual_state
     response_data['slot_num'] = info.current_slot
     response_data['slot_desc'] = info.slot_description
-    #response_data['hour_delay'] = info.get_next_program_delay()
     response_data['hour_date'] = info.get_next_program_hour
+    response_data['hour_delay'] = info.get_next_program_delay()
 
     return HttpResponse(json.dumps(response_data),
                         content_type="application/json")

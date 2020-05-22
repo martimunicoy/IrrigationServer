@@ -59,7 +59,12 @@ class ProgramStatus(models.Model):
             'Sunday', 'Diumenge')
 
     def get_next_program_delay(self):
-        return ''
+        if self.next_program_hour is None:
+            return '-'
+        delay = str(self.next_program_hour - timezone.now())
+        delay = delay.replace('days', 'dies')
+        delay = delay.split('.')[0]
+        return delay
 
 
 class CycleSettings(models.Model):
@@ -225,7 +230,7 @@ class IrrigationHour(models.Model):
 
     def __str__(self):
         return '{} {:02d}:{:02d}'.format(self.print_weekdays_interval(),
-                                          self.hour.hour, self.hour.minute)
+                                         self.hour.hour, self.hour.minute)
 
 
 class WeatherData(models.Model):
