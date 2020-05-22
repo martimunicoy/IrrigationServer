@@ -5,6 +5,7 @@ import os
 import sys
 from datetime import datetime, timedelta
 from dateutil import rrule
+from copy import copy
 try:
     NO_RPI = False
     import RPi.GPIO as GPIO
@@ -395,7 +396,12 @@ class ScheduleHandler(Handler):
 
     def _add_program_to_loaded_programs(self, program):
         self._loaded_programs.append(program)
-        self.loaded_programs.sort()
+
+        # Make a copy because loaded programs might be modified during sort by
+        # another thread
+        loaded_programs = copy(self.loaded_programs)
+        loaded_programs.sort()
+        self._loaded_programs = loaded_programs
 
     def _remove_program_to_loaded_programs(self, program):
         self._loaded_programs.remove(program)
