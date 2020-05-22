@@ -21,6 +21,9 @@ def index(request):
     if (len(ProgramStatus.objects.all()) != 1):
         raise TypeError('Invalid dataset, ProgramStatus table not found')
     server_status = ProgramStatus.objects.all()[0]
+    server_status.next_program_delay = -1
+    server_status.next_program_description = '-'
+    server_status.save()
     cycle_settings = CycleSettings.objects.all()[0]
 
     if server_status.manual:
@@ -87,6 +90,8 @@ def refresh_info(request):
     response_data['manual'] = info.manual_state
     response_data['slot_num'] = info.current_slot
     response_data['slot_desc'] = info.slot_description
+    #response_data['hour_delay'] = info.get_next_program_delay()
+    response_data['hour_date'] = info.get_next_program_hour
 
     return HttpResponse(json.dumps(response_data),
                         content_type="application/json")

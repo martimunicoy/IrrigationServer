@@ -1,17 +1,15 @@
 var csrftoken = $("[name=csrfmiddlewaretoken]").val();
 
-function update_info_div(running, manual, slot_num, slot_desc){
+function update_info_div(running, manual, slot_num, slot_desc, hour_date){
     $("#info_card").html('');
-    if (running == "Regant"){
-        $("#info_card").append("<li>" + running + "</li>")
-    }
-    else{
-        $("#info_card").append("<li>" + running + "</li>")
-    }
+    $("#info_card").append("<li>" + running + "</li>")
     $("#info_card").append("<li>" + manual + "</li>")
     $("#info_card").append("<li>Posició actual:<ul id='slot_info_list'>" +
                            "<li>Número: " + slot_num + "</li>" +
                            "<li>Descripció: " + slot_desc + "</li></ul></li>")
+    $("#info_card").append("<li>Següent programa:<ul id='hour_info_list'>" +
+                           "<li>Hora:<p>" + hour_date + "</p></li>" +
+                           "<li>Restant:<p>" + "?" + "</p></li></ul></li>")
 }
 
 function autoRefresh_info() {
@@ -24,7 +22,7 @@ function autoRefresh_info() {
             console.log(json); // log the returned json to the console
             console.log("Success"); // another sanity check
             update_info_div(json.running, json.manual, json.slot_num,
-                            json.slot_desc);  // update div
+                            json.slot_desc, json.hour_date);
         },
 
         // handle a non-successful response

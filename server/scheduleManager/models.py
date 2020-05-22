@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class IrrigationSlot(models.Model):
@@ -19,6 +20,7 @@ class ProgramStatus(models.Model):
     manual = models.BooleanField(default=True)
     running = models.BooleanField(default=False)
     current_slot = models.PositiveIntegerField(default=0)
+    next_program_hour = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         app_label = 'scheduleManager'
@@ -42,6 +44,22 @@ class ProgramStatus(models.Model):
     def slot_description(self):
         cycle_settings = CycleSettings.objects.all()[0]
         return cycle_settings.get_description(self.current_slot)
+
+    @property
+    def get_next_program_hour(self):
+        if self.next_program_hour is None:
+            return '-'
+        return timezone.localtime(self.next_program_hour).strftime('%A %H:%M').replace(
+            'Monday', 'Dilluns').replace(
+            'Tuesday', 'Dimarts').replace(
+            'Wednesday', 'Dimecres').replace(
+            'Thursday', 'Dijous').replace(
+            'Friday', 'Divendres').replace(
+            'Saturday', 'Dissabte').replace(
+            'Sunday', 'Diumenge')
+
+    def get_next_program_delay(self):
+        return ''
 
 
 class CycleSettings(models.Model):
@@ -108,7 +126,7 @@ class WeekDay(models.Model):
             return catalan_weekdays
         return wrapper
 
-    @to_catalan
+    @ to_catalan
     def __str__(self):
         return self.name
 
@@ -157,7 +175,7 @@ class IrrigationHour(models.Model):
     def get_week_days(self):
         return self.week_days
 
-    @to_catalan
+    @ to_catalan
     def print_weekdays_interval(self):
         indexes_list = []
         for wd in self.week_days.all():
@@ -206,7 +224,7 @@ class IrrigationHour(models.Model):
         return out
 
     def __str__(self):
-        return '{}: {:02d}h{:02d}'.format(self.print_weekdays_interval(),
+        return '{} {:02d}:{:02d}'.format(self.print_weekdays_interval(),
                                           self.hour.hour, self.hour.minute)
 
 

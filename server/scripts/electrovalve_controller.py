@@ -4,6 +4,7 @@ import django
 import os
 import sys
 from datetime import datetime, timedelta
+from django.utils import timezone
 from dateutil import rrule
 from copy import copy
 try:
@@ -214,7 +215,7 @@ class ServerStatus(object):
             return self.__str__()
 
         def get_date(self):
-            start = datetime.now()
+            start = timezone.localtime(timezone.now())
 
             # Optimal return when queries are done simultaneously
             if self.__last_date_getter is not None:
@@ -235,7 +236,7 @@ class ServerStatus(object):
             return date
 
         def get_delay(self):
-            now = datetime.now()
+            now = timezone.localtime(timezone.now())
             date = self.get_date()
             if date < now:
                 date += timedelta(days=7)
@@ -315,6 +316,11 @@ class ServerStatus(object):
         if not self.slot_actives[self.current_slot]:
             self.set_next_slot()
 
+    def set_next_hour(self, hour=None):
+        status = self._get_status()
+        status.next_program_hour = hour
+        status.save()
+
 
 class Handler(object):
     def __init__(self, cycle):
@@ -384,9 +390,8 @@ class ScheduleHandler(Handler):
         self.cycle.run()
         self.__running = False
 
-        self.loaded_programs.sort()
-        self._next_program = self.loaded_programs[0]
-        self._set_timer()
+        # Set next program
+        self._set_next_program()
 
     def _check_loading_conditions_fulfillment(self, program):
         pass
@@ -396,15 +401,43 @@ class ScheduleHandler(Handler):
 
     def _add_program_to_loaded_programs(self, program):
         self._loaded_programs.append(program)
+        self._set_next_program()
 
-        # Make a copy because loaded programs might be modified during sort by
-        # another thread
-        loaded_programs = copy(self.loaded_programs)
-        loaded_programs.sort()
-        self._loaded_programs = loaded_programs
-
-    def _remove_program_to_loaded_programs(self, program):
+    def _remove_program_from_loaded_programs(self, program):
         self._loaded_programs.remove(program)
+        self._set_next_program()
+
+    def _set_next_program(self):
+        if len(self.loaded_programs) == 0:
+            self.cancel_thread()
+            self._next_program = None
+            self.electrovalve.server_status.set_next_hour()
+        else:
+            new_next_program = min(self.loaded_programs)
+
+            # Is it really necessary to change the next_program?
+            if self.next_program != new_next_program:
+                # If program is running, wait until it finishes
+                if self.__running:
+                    return
+
+                self._next_program = new_next_program
+                self.cancel_thread()
+                self._set_timer()
+                self.electrovalve.server_status.set_next_hour(
+                    self.next_program.get_date())
+
+    """
+    .strftime(
+                        '%A %H:%M').replace(
+                        'Monday', 'Dilluns').replace(
+                        'Tuesday', 'Dimarts').replace(
+                        'Wednesday', 'Dimecres').replace(
+                        'Thursday', 'Dijous').replace(
+                        'Friday', 'Divendres').replace(
+                        'Saturday', 'Dissabte').replace(
+                        'Sunday', 'Diumenge')
+    """
 
     def _set_timer(self):
         if self.__running:
@@ -417,19 +450,15 @@ class ScheduleHandler(Handler):
     def load_program(self, program):
         self._check_loading_conditions_fulfillment(program)
         self._add_program_to_loaded_programs(program)
-        if self.next_program != self.loaded_programs[0]:
-            self._next_program = self.loaded_programs[0]
-            if self.thread is not None:
-                self.thread.cancel()
-            self._set_timer()
 
     def unload_program(self, program):
         self._check_unloading_conditions_fulfillment(program)
-        self._remove_program_to_loaded_programs(program)
-        self.cancel_thread()
-        if len(self.loaded_programs) > 0:
-            self._next_program = self.loaded_programs[0]
-            self._set_timer()
+        self._remove_program_from_loaded_programs(program)
+
+    def unload_all_programs(self):
+        for program in self.loaded_programs:
+            self._loaded_programs.remove(program)
+            self._set_next_program()
 
     def _apply_state(self, first_call=False):
         pass
@@ -498,7 +527,7 @@ class PeriodicQuery(object):
 
     def _periodic_action(self):
         if self.server_status.manual_mode:
-            self.handlers['schedule'].cancel_thread()
+            self.handlers['schedule'].unload_all_programs()
             self.handlers['manual'].feed(self.server_status.is_running)
         else:
             self.handlers['schedule'].feed(self.server_status.programs)
